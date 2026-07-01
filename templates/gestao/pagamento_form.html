@@ -1,0 +1,23 @@
+{% extends 'gestao/base.html' %}
+{% block title %}Novo Pagamento — LocaGestão{% endblock %}
+{% block page_title %}Novo Pagamento{% endblock %}
+{% block content %}
+<form method="post">
+  {% csrf_token %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">Locação</label>{{ form.locacao }}</div>
+        <div class="col-md-3"><label class="form-label">Valor</label>{{ form.valor }}</div>
+        <div class="col-md-3"><label class="form-label">Vencimento</label>{{ form.data_vencimento }}</div>
+        <div class="col-md-4"><label class="form-label">Forma de Pagamento</label>{{ form.forma_pagamento }}</div>
+        <div class="col-12"><label class="form-label">Observações</label>{{ form.observacoes }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a href="/pagamentos/" class="btn btn-outline-secondary">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

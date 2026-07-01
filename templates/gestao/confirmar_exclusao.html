@@ -1,0 +1,19 @@
+{% extends 'gestao/base.html' %}
+{% block title %}Confirmar Exclusão — LocaGestão{% endblock %}
+{% block page_title %}Confirmar Exclusão{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;margin:0 auto">
+  <div class="card-body text-center py-5">
+    <div style="font-size:50px;margin-bottom:16px">⚠️</div>
+    <h4 style="color:#0F2744">Confirmar exclusão?</h4>
+    <p class="text-muted">Tem certeza que deseja remover <strong>{{ objeto }}</strong>? Esta ação não pode ser desfeita.</p>
+    <div class="d-flex gap-2 justify-content-center mt-4">
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-2"></i>Sim, excluir</button>
+      </form>
+      <a href="/{{ tipo }}s/" class="btn btn-outline-secondary">Cancelar</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

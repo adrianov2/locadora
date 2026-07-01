@@ -1,0 +1,34 @@
+{% extends 'gestao/base.html' %}
+{% block title %}{% if manutencao %}Editar{% else %}Nova{% endif %} Manutenção — LocaGestão{% endblock %}
+{% block page_title %}{% if manutencao %}Editar Manutenção{% else %}Nova Manutenção{% endif %}{% endblock %}
+{% block content %}
+<form method="post">
+  {% csrf_token %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">Veículo *</label>{{ form.veiculo }}</div>
+        <div class="col-md-3"><label class="form-label">Tipo *</label>{{ form.tipo }}</div>
+        <div class="col-md-3"><label class="form-label">Data *</label>{{ form.data }}</div>
+        <div class="col-md-4"><label class="form-label">Valor (R$)</label>{{ form.valor }}</div>
+        <div class="col-md-8"><label class="form-label">Oficina</label>{{ form.oficina }}</div>
+        <div class="col-12"><label class="form-label">Descrição</label>{{ form.descricao }}</div>
+      </div>
+      <p class="section-title">Próximos Vencimentos</p>
+      <div class="row g-3">
+        <div class="col-md-4"><label class="form-label">Próxima Revisão</label>{{ form.proxima_revisao }}</div>
+        <div class="col-md-4"><label class="form-label">Próxima Troca de Óleo</label>{{ form.proxima_troca_oleo }}</div>
+        <div class="col-md-4"><label class="form-label">Troca de Pneus</label>{{ form.troca_pneus }}</div>
+        <div class="col-md-4"><label class="form-label">Venc. Seguro</label>{{ form.vencimento_seguro }}</div>
+        <div class="col-md-4"><label class="form-label">Venc. Licenciamento</label>{{ form.vencimento_licenciamento }}</div>
+        <div class="col-md-4"><label class="form-label">Venc. IPVA</label>{{ form.vencimento_ipva }}</div>
+      </div>
+    </div>
+  </div>
+  {% for field in form %}{% if field.errors %}<div class="text-danger small mb-2">{{ field.label }}: {{ field.errors|join:", " }}</div>{% endif %}{% endfor %}
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-2"></i>Salvar</button>
+    <a href="/manutencoes/" class="btn btn-outline-secondary">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

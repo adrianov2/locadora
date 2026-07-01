@@ -1,0 +1,67 @@
+{% extends 'gestao/base.html' %}
+{% block title %}{{ veiculo }} — LocaGestão{% endblock %}
+{% block page_title %}{{ veiculo.marca }} {{ veiculo.modelo }}{% endblock %}
+{% block topbar_actions %}
+<a href="/veiculos/{{ veiculo.pk }}/editar/" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>Editar</a>
+<a href="/manutencoes/nova/?veiculo={{ veiculo.pk }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-tools me-1"></i>Manutenção</a>
+{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="text-center mb-3" style="font-size:60px">🚗</div>
+        <span class="status-badge badge-{{ veiculo.status }} mb-2 d-inline-block">{{ veiculo.get_status_display }}</span>
+        <table class="table table-sm">
+          <tr><td class="text-muted small">Placa</td><td><strong>{{ veiculo.placa }}</strong></td></tr>
+          <tr><td class="text-muted small">Ano/Cor</td><td>{{ veiculo.ano }} / {{ veiculo.cor }}</td></tr>
+          <tr><td class="text-muted small">KM</td><td>{{ veiculo.quilometragem }} km</td></tr>
+          <tr><td class="text-muted small">Renavam</td><td>{{ veiculo.renavam }}</td></tr>
+          <tr><td class="text-muted small">Chassi</td><td>{{ veiculo.chassi }}</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-8">
+    <div class="card mb-3">
+      <div class="card-header">Histórico de Locações</div>
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead><tr><th>Cliente</th><th>Retirada</th><th>Devolução</th><th>Valor</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for loc in locacoes %}
+            <tr>
+              <td>{{ loc.cliente.nome }}</td>
+              <td>{{ loc.data_retirada|date:"d/m/Y" }}</td>
+              <td>{{ loc.data_prevista_devolucao|date:"d/m/Y" }}</td>
+              <td>R$ {{ loc.valor_combinado }}</td>
+              <td><span class="status-badge badge-{{ loc.status }}">{{ loc.get_status_display }}</span></td>
+            </tr>
+            {% empty %}<tr><td colspan="5" class="text-center text-muted py-3">Sem locações</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Histórico de Manutenções</div>
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead><tr><th>Tipo</th><th>Data</th><th>Valor</th><th>Oficina</th></tr></thead>
+          <tbody>
+            {% for m in manutencoes %}
+            <tr>
+              <td>{{ m.get_tipo_display }}</td>
+              <td>{{ m.data|date:"d/m/Y" }}</td>
+              <td>R$ {{ m.valor }}</td>
+              <td>{{ m.oficina }}</td>
+            </tr>
+            {% empty %}<tr><td colspan="4" class="text-center text-muted py-3">Sem manutenções</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

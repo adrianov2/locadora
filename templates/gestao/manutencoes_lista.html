@@ -1,0 +1,38 @@
+{% extends 'gestao/base.html' %}
+{% block title %}Manutenções — LocaGestão{% endblock %}
+{% block page_title %}Manutenções{% endblock %}
+{% block topbar_actions %}
+<a href="/manutencoes/nova/" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>Nova Manutenção</a>
+{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 align-items-center flex-wrap">
+  <select class="form-select form-select-sm" style="width:auto" onchange="location='?veiculo='+this.value">
+    <option value="">Todos os veículos</option>
+    {% for v in veiculos %}
+    <option value="{{ v.pk }}" {% if veiculo_id == v.pk|stringformat:"s" %}selected{% endif %}>{{ v.marca }} {{ v.modelo }} - {{ v.placa }}</option>
+    {% endfor %}
+  </select>
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-custom mb-0">
+      <thead><tr><th>Veículo</th><th>Tipo</th><th>Data</th><th>Valor</th><th>Oficina</th><th>Próx. Revisão</th><th>Ações</th></tr></thead>
+      <tbody>
+        {% for m in manutencoes %}
+        <tr>
+          <td>{{ m.veiculo.placa }}<br><small class="text-muted">{{ m.veiculo.marca }} {{ m.veiculo.modelo }}</small></td>
+          <td>{{ m.get_tipo_display }}</td>
+          <td>{{ m.data|date:"d/m/Y" }}</td>
+          <td>R$ {{ m.valor }}</td>
+          <td>{{ m.oficina|default:"—" }}</td>
+          <td>{{ m.proxima_revisao|date:"d/m/Y"|default:"—" }}</td>
+          <td><a href="/manutencoes/{{ m.pk }}/editar/" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted py-4">Nenhuma manutenção registrada.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

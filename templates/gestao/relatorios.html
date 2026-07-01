@@ -1,0 +1,29 @@
+{% extends 'gestao/base.html' %}
+{% block title %}Relatórios — LocaGestão{% endblock %}
+{% block page_title %}Relatórios{% endblock %}
+{% block content %}
+<div class="row g-3">
+  {% for tipo, label, icon in relatorios_lista %}
+  {% endfor %}
+  
+  {% for item in relatorios_opcoes %}
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body text-center py-4">
+        <div style="font-size:40px;margin-bottom:12px">{{ item.icon }}</div>
+        <h5 style="color:#0F2744;font-weight:700">{{ item.label }}</h5>
+        <p class="text-muted small">{{ item.desc }}</p>
+        <div class="d-flex gap-2 justify-content-center mt-3">
+          <a href="/relatorios/pdf/{{ item.tipo }}/" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-file-pdf me-1"></i>PDF
+          </a>
+          <a href="/relatorios/excel/{{ item.tipo }}/" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-file-excel me-1"></i>Excel
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

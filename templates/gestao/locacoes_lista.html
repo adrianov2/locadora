@@ -1,0 +1,42 @@
+{% extends 'gestao/base.html' %}
+{% block title %}Locações — LocaGestão{% endblock %}
+{% block page_title %}Locações{% endblock %}
+{% block topbar_actions %}
+<a href="/locacoes/nova/" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>Nova Locação</a>
+{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 flex-wrap">
+  <a href="/locacoes/" class="btn btn-sm {% if not status %}btn-navy{% else %}btn-outline-secondary{% endif %}">Todas</a>
+  <a href="?status=ativa" class="btn btn-sm {% if status == 'ativa' %}btn-primary{% else %}btn-outline-primary{% endif %}">Ativas</a>
+  <a href="?status=finalizada" class="btn btn-sm {% if status == 'finalizada' %}btn-success{% else %}btn-outline-success{% endif %}">Finalizadas</a>
+  <a href="?status=cancelada" class="btn btn-sm {% if status == 'cancelada' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Canceladas</a>
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-custom mb-0">
+      <thead><tr><th>Cliente</th><th>Veículo</th><th>Retirada</th><th>Devolução Prev.</th><th>Valor</th><th>Pagto</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody>
+        {% for loc in locacoes %}
+        <tr>
+          <td><strong>{{ loc.cliente.nome }}</strong></td>
+          <td>{{ loc.veiculo.marca }} {{ loc.veiculo.modelo }}<br><small class="text-muted">{{ loc.veiculo.placa }}</small></td>
+          <td>{{ loc.data_retirada|date:"d/m/Y" }}<br><small class="text-muted">{{ loc.hora_retirada|time:"H:i" }}</small></td>
+          <td>{{ loc.data_prevista_devolucao|date:"d/m/Y" }}<br><small class="text-muted">{{ loc.hora_prevista_devolucao|time:"H:i" }}</small></td>
+          <td>R$ {{ loc.valor_combinado }}</td>
+          <td><small>{{ loc.get_forma_pagamento_display }}</small></td>
+          <td><span class="status-badge badge-{{ loc.status }}">{{ loc.get_status_display }}</span></td>
+          <td>
+            <a href="/locacoes/{{ loc.pk }}/" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+            {% if loc.status == 'ativa' %}
+            <a href="/locacoes/{{ loc.pk }}/finalizar/" class="btn btn-sm btn-success"><i class="bi bi-check2"></i></a>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-muted py-4">Nenhuma locação encontrada.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

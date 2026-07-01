@@ -1,0 +1,42 @@
+{% extends 'gestao/base.html' %}
+{% block title %}Pagamentos — LocaGestão{% endblock %}
+{% block page_title %}Pagamentos{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 flex-wrap">
+  <a href="/pagamentos/" class="btn btn-sm {% if not situacao %}btn-navy{% else %}btn-outline-secondary{% endif %}">Todos</a>
+  <a href="?situacao=pendente" class="btn btn-sm {% if situacao == 'pendente' %}btn-warning{% else %}btn-outline-warning{% endif %}">Pendentes</a>
+  <a href="?situacao=atrasado" class="btn btn-sm {% if situacao == 'atrasado' %}btn-danger{% else %}btn-outline-danger{% endif %}">Atrasados</a>
+  <a href="?situacao=pago" class="btn btn-sm {% if situacao == 'pago' %}btn-success{% else %}btn-outline-success{% endif %}">Pagos</a>
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-custom mb-0">
+      <thead><tr><th>Cliente</th><th>Veículo</th><th>Valor</th><th>Vencimento</th><th>Pagamento</th><th>Situação</th><th>Ação</th></tr></thead>
+      <tbody>
+        {% for p in pagamentos %}
+        <tr>
+          <td><strong>{{ p.locacao.cliente.nome }}</strong></td>
+          <td>{{ p.locacao.veiculo.placa }}</td>
+          <td>R$ {{ p.valor }}</td>
+          <td>{{ p.data_vencimento|date:"d/m/Y" }}</td>
+          <td>{{ p.get_forma_pagamento_display }}</td>
+          <td><span class="status-badge badge-{{ p.situacao }}">{{ p.get_situacao_display }}</span></td>
+          <td>
+            {% if p.situacao != 'pago' %}
+            <form method="post" action="/pagamentos/{{ p.pk }}/pagar/" style="display:inline">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-success">✓ Pagar</button>
+            </form>
+            {% else %}
+            <span class="text-muted small">{{ p.data_pagamento|date:"d/m/Y" }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted py-4">Nenhum pagamento encontrado.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

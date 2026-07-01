@@ -1,0 +1,102 @@
+{% extends 'gestao/base.html' %}
+{% block title %}Financeiro — LocaGestão{% endblock %}
+{% block page_title %}Fluxo de Caixa{% endblock %}
+{% block content %}
+<form method="get" class="d-flex gap-2 mb-4 align-items-end flex-wrap">
+  <div>
+    <label class="form-label">Mês</label>
+    <select name="mes" class="form-select" style="width:auto">
+      {% for m in "123456789101112"|make_list %}{% endfor %}
+      <option value="1" {% if mes == 1 %}selected{% endif %}>Janeiro</option>
+      <option value="2" {% if mes == 2 %}selected{% endif %}>Fevereiro</option>
+      <option value="3" {% if mes == 3 %}selected{% endif %}>Março</option>
+      <option value="4" {% if mes == 4 %}selected{% endif %}>Abril</option>
+      <option value="5" {% if mes == 5 %}selected{% endif %}>Maio</option>
+      <option value="6" {% if mes == 6 %}selected{% endif %}>Junho</option>
+      <option value="7" {% if mes == 7 %}selected{% endif %}>Julho</option>
+      <option value="8" {% if mes == 8 %}selected{% endif %}>Agosto</option>
+      <option value="9" {% if mes == 9 %}selected{% endif %}>Setembro</option>
+      <option value="10" {% if mes == 10 %}selected{% endif %}>Outubro</option>
+      <option value="11" {% if mes == 11 %}selected{% endif %}>Novembro</option>
+      <option value="12" {% if mes == 12 %}selected{% endif %}>Dezembro</option>
+    </select>
+  </div>
+  <div>
+    <label class="form-label">Ano</label>
+    <input type="number" name="ano" value="{{ ano }}" class="form-control" style="width:100px">
+  </div>
+  <button class="btn btn-primary">Filtrar</button>
+</form>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#dbeafe">💵</div>
+      <div class="stat-value" style="color:#1e40af">R$ {{ total_receitas|floatformat:2 }}</div>
+      <div class="stat-label">Total de Receitas</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fef3c7">🔧</div>
+      <div class="stat-value" style="color:#92400e">R$ {{ total_gastos|floatformat:2 }}</div>
+      <div class="stat-label">Total de Gastos</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:{% if lucro >= 0 %}#d1fae5{% else %}#fee2e2{% endif %}">📈</div>
+      <div class="stat-value" style="color:{% if lucro >= 0 %}#065f46{% else %}#991b1b{% endif %}">R$ {{ lucro|floatformat:2 }}</div>
+      <div class="stat-label">Lucro Líquido</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>💰 Receitas</span>
+        <a href="/relatorios/excel/financeiro/" class="btn btn-sm btn-outline-success"><i class="bi bi-file-excel me-1"></i>Excel</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead><tr><th>Cliente</th><th>Data Pgto</th><th>Valor</th></tr></thead>
+          <tbody>
+            {% for r in receitas %}
+            <tr>
+              <td>{{ r.locacao.cliente.nome }}</td>
+              <td>{{ r.data_pagamento|date:"d/m/Y" }}</td>
+              <td class="text-success fw-bold">R$ {{ r.valor }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center text-muted py-3">Nenhuma receita neste período</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">🔧 Gastos com Manutenção</div>
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead><tr><th>Veículo</th><th>Tipo</th><th>Valor</th></tr></thead>
+          <tbody>
+            {% for g in gastos %}
+            <tr>
+              <td>{{ g.veiculo.placa }}</td>
+              <td>{{ g.get_tipo_display }}</td>
+              <td class="text-danger fw-bold">R$ {{ g.valor }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-center text-muted py-3">Nenhum gasto neste período</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

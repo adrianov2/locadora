@@ -1,0 +1,59 @@
+{% extends 'gestao/base.html' %}
+{% block title %}Locação {{ locacao.pk }} — LocaGestão{% endblock %}
+{% block page_title %}Locação #{{ locacao.pk }}{% endblock %}
+{% block topbar_actions %}
+{% if locacao.status == 'ativa' %}
+<a href="/locacoes/{{ locacao.pk }}/finalizar/" class="btn btn-sm btn-success"><i class="bi bi-check2 me-1"></i>Finalizar</a>
+{% endif %}
+{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Dados da Locação</div>
+      <div class="card-body">
+        <table class="table table-sm">
+          <tr><td class="text-muted">Status</td><td><span class="status-badge badge-{{ locacao.status }}">{{ locacao.get_status_display }}</span></td></tr>
+          <tr><td class="text-muted">Cliente</td><td><a href="/clientes/{{ locacao.cliente.pk }}/">{{ locacao.cliente.nome }}</a></td></tr>
+          <tr><td class="text-muted">Veículo</td><td><a href="/veiculos/{{ locacao.veiculo.pk }}/">{{ locacao.veiculo }}</a></td></tr>
+          <tr><td class="text-muted">Retirada</td><td>{{ locacao.data_retirada|date:"d/m/Y" }} às {{ locacao.hora_retirada|time:"H:i" }}</td></tr>
+          <tr><td class="text-muted">Devolução Prev.</td><td>{{ locacao.data_prevista_devolucao|date:"d/m/Y" }} às {{ locacao.hora_prevista_devolucao|time:"H:i" }}</td></tr>
+          {% if locacao.data_devolucao_real %}<tr><td class="text-muted">Devolução Real</td><td>{{ locacao.data_devolucao_real|date:"d/m/Y" }} às {{ locacao.hora_devolucao_real|time:"H:i" }}</td></tr>{% endif %}
+          <tr><td class="text-muted">Valor</td><td><strong>R$ {{ locacao.valor_combinado }}</strong></td></tr>
+          <tr><td class="text-muted">Pagamento</td><td>{{ locacao.get_forma_pagamento_display }}</td></tr>
+        </table>
+        {% if locacao.observacoes %}<p class="text-muted small">{{ locacao.observacoes }}</p>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Pagamentos</div>
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead><tr><th>Valor</th><th>Vencimento</th><th>Situação</th><th>Ação</th></tr></thead>
+          <tbody>
+            {% for p in pagamentos %}
+            <tr>
+              <td>R$ {{ p.valor }}</td>
+              <td>{{ p.data_vencimento|date:"d/m/Y" }}</td>
+              <td><span class="status-badge badge-{{ p.situacao }}">{{ p.get_situacao_display }}</span></td>
+              <td>
+                {% if p.situacao != 'pago' %}
+                <form method="post" action="/pagamentos/{{ p.pk }}/pagar/" style="display:inline">
+                  {% csrf_token %}
+                  <button class="btn btn-sm btn-success">✓ Pagar</button>
+                </form>
+                {% else %}
+                <span class="text-muted small">{{ p.data_pagamento|date:"d/m/Y" }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

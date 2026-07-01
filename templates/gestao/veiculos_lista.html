@@ -1,0 +1,38 @@
+{% extends 'gestao/base.html' %}
+{% block title %}Veículos — LocaGestão{% endblock %}
+{% block page_title %}Veículos{% endblock %}
+{% block topbar_actions %}
+<a href="/veiculos/novo/" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>Novo Veículo</a>
+{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 flex-wrap">
+  <a href="/veiculos/" class="btn btn-sm {% if not status %}btn-navy{% else %}btn-outline-secondary{% endif %}">Todos</a>
+  <a href="?status=disponivel" class="btn btn-sm {% if status == 'disponivel' %}btn-success{% else %}btn-outline-success{% endif %}">🟢 Disponíveis</a>
+  <a href="?status=alugado" class="btn btn-sm {% if status == 'alugado' %}btn-primary{% else %}btn-outline-primary{% endif %}">🔵 Alugados</a>
+  <a href="?status=manutencao" class="btn btn-sm {% if status == 'manutencao' %}btn-warning{% else %}btn-outline-warning{% endif %}">🟡 Manutenção</a>
+</div>
+<div class="row g-3">
+  {% for v in veiculos %}
+  <div class="col-md-4 col-lg-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div style="font-size:32px">🚗</div>
+          <span class="status-badge badge-{{ v.status }}">{{ v.get_status_display }}</span>
+        </div>
+        <div style="font-weight:700;color:#0F2744;font-size:15px">{{ v.marca }} {{ v.modelo }}</div>
+        <div style="font-size:13px;color:#64748b">{{ v.ano }} · {{ v.cor }}</div>
+        <div style="font-size:14px;font-weight:600;margin-top:4px">🔑 {{ v.placa }}</div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:2px">{{ v.quilometragem }} km</div>
+        <div class="d-flex gap-2 mt-3">
+          <a href="/veiculos/{{ v.pk }}/" class="btn btn-sm btn-outline-primary flex-fill">Ver</a>
+          <a href="/veiculos/{{ v.pk }}/editar/" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12 text-center py-5 text-muted">Nenhum veículo cadastrado.</div>
+  {% endfor %}
+</div>
+{% endblock %}

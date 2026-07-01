@@ -1,0 +1,154 @@
+{% extends 'gestao/base.html' %}
+{% block title %}Dashboard — LocaGestão{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- ALERTAS -->
+{% if alertas %}
+<div class="mb-4">
+  <h6 class="section-title" style="margin-top:0">⚠️ Alertas Importantes</h6>
+  {% for alerta in alertas|slice:":8" %}
+  <div class="alert-item {{ alerta.tipo }}">
+    <span class="alert-icon">{% if alerta.tipo == 'danger' %}🔴{% else %}🟡{% endif %}</span>
+    <span class="alert-text">{{ alerta.mensagem }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- STATS -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#dbeafe">💰</div>
+      <div class="stat-value" style="color:#1e40af">R$ {{ receita_mes|floatformat:0 }}</div>
+      <div class="stat-label">Receita do Mês</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fef3c7">🔧</div>
+      <div class="stat-value" style="color:#92400e">R$ {{ gastos_mes|floatformat:0 }}</div>
+      <div class="stat-label">Gastos Manutenção</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#d1fae5">📈</div>
+      <div class="stat-value" style="color:#065f46">R$ {{ lucro_mes|floatformat:0 }}</div>
+      <div class="stat-label">Lucro Líquido</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#fee2e2">⏰</div>
+      <div class="stat-value" style="color:#991b1b">{{ pag_atrasados }}</div>
+      <div class="stat-label">Pagtos Atrasados</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-4">
+    <div class="stat-card text-center">
+      <div style="font-size:32px">🟢</div>
+      <div class="stat-value">{{ veiculos_disponiveis }}</div>
+      <div class="stat-label">Disponíveis</div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="stat-card text-center">
+      <div style="font-size:32px">🔵</div>
+      <div class="stat-value">{{ veiculos_alugados }}</div>
+      <div class="stat-label">Alugados</div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="stat-card text-center">
+      <div style="font-size:32px">🟡</div>
+      <div class="stat-value">{{ veiculos_manutencao }}</div>
+      <div class="stat-label">Manutenção</div>
+    </div>
+  </div>
+</div>
+
+<!-- GRÁFICOS -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">📊 Receitas e Gastos — Últimos 6 Meses</div>
+      <div class="card-body">
+        <canvas id="chartReceitas" height="100"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header">🚗 Locações Ativas</div>
+      <div class="card-body p-0">
+        {% if locacoes_recentes %}
+          {% for loc in locacoes_recentes %}
+          <div style="padding:12px 16px; border-bottom:1px solid #f1f5f9;">
+            <div style="font-weight:600;font-size:13px;color:#0F2744">{{ loc.cliente.nome }}</div>
+            <div style="font-size:12px;color:#64748b">{{ loc.veiculo }} · Devolução: {{ loc.data_prevista_devolucao|date:"d/m" }}</div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center py-4 text-muted" style="font-size:13px">Nenhuma locação ativa</div>
+        {% endif %}
+        <div style="padding:12px 16px">
+          <a href="/locacoes/" class="btn btn-sm btn-navy w-100">Ver todas</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AÇÕES RÁPIDAS -->
+<div class="card">
+  <div class="card-header">⚡ Ações Rápidas</div>
+  <div class="card-body">
+    <div class="row g-2">
+      <div class="col-6 col-md-3">
+        <a href="/locacoes/nova/" class="btn btn-primary w-100"><i class="bi bi-plus-circle me-2"></i>Nova Locação</a>
+      </div>
+      <div class="col-6 col-md-3">
+        <a href="/clientes/novo/" class="btn btn-outline-primary w-100"><i class="bi bi-person-plus me-2"></i>Novo Cliente</a>
+      </div>
+      <div class="col-6 col-md-3">
+        <a href="/veiculos/novo/" class="btn btn-outline-secondary w-100"><i class="bi bi-car-front me-2"></i>Novo Veículo</a>
+      </div>
+      <div class="col-6 col-md-3">
+        <a href="/manutencoes/nova/" class="btn btn-outline-warning w-100"><i class="bi bi-tools me-2"></i>Manutenção</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const labels = {{ meses_labels|safe }};
+const receitas = {{ receitas_data|safe }};
+const gastos = {{ gastos_data|safe }};
+
+new Chart(document.getElementById('chartReceitas'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [
+      { label: 'Receitas', data: receitas, backgroundColor: '#2563EB', borderRadius: 6 },
+      { label: 'Gastos', data: gastos, backgroundColor: '#F59E0B', borderRadius: 6 }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'top' } },
+    scales: {
+      y: { beginAtZero: true, ticks: { callback: v => 'R$' + v.toLocaleString('pt-BR') } }
+    }
+  }
+});
+</script>
+{% endblock %}

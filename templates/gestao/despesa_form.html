@@ -1,0 +1,120 @@
+{% extends 'gestao/base.html' %}
+
+{% block title %}
+Despesa
+{% endblock %}
+
+{% block page_title %}
+Cadastro de Despesa
+{% endblock %}
+
+{% block content %}
+
+<form method="post">
+
+{% csrf_token %}
+
+<div class="card">
+
+<div class="card-body">
+
+<div class="row g-3">
+
+<div class="col-md-6">
+
+<label>
+
+Veículo
+
+</label>
+
+{{ form.veiculo }}
+
+</div>
+
+<div class="col-md-3">
+
+<label>
+
+Tipo
+
+</label>
+
+{{ form.tipo }}
+
+</div>
+
+<div class="col-md-3">
+
+<label>
+
+Data
+
+</label>
+
+{{ form.data }}
+
+</div>
+
+<div class="col-md-4">
+
+<label>
+
+Valor
+
+</label>
+
+{{ form.valor }}
+
+</div>
+
+<div class="col-md-8">
+
+<label>
+
+Descrição
+
+</label>
+
+{{ form.descricao }}
+
+</div>
+
+<div class="col-12">
+
+<label>
+
+Observações
+
+</label>
+
+{{ form.observacoes }}
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<br>
+
+<button
+class="btn btn-success">
+
+Salvar
+
+</button>
+
+<a
+href="{% url 'despesas_lista' %}"
+class="btn btn-secondary">
+
+Cancelar
+
+</a>
+
+</form>
+
+{% endblock %}

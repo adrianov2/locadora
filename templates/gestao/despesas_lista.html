@@ -1,0 +1,184 @@
+{% extends 'gestao/base.html' %}
+
+{% block title %}Despesas{% endblock %}
+{% block page_title %}Controle de Despesas{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'despesa_nova' %}" class="btn btn-primary">
+    <i class="bi bi-plus-circle"></i>
+    Nova Despesa
+</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="card mb-3">
+    <div class="card-body">
+
+        <form method="get">
+
+            <div class="row">
+
+                <div class="col-md-4">
+
+                    <select
+                        name="veiculo"
+                        class="form-select">
+
+                        <option value="">Todos os veículos</option>
+
+                        {% for v in veiculos %}
+
+                        <option
+                            value="{{ v.id }}"
+                            {% if veiculo_id == v.id|stringformat:"s" %}
+                            selected
+                            {% endif %}>
+
+                            {{ v }}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <button class="btn btn-primary">
+
+                        Filtrar
+
+                    </button>
+
+                </div>
+
+                <div class="col-md-6 text-end">
+
+                    <h4>
+
+                        Total:
+
+                        <span class="text-danger">
+
+                            R$ {{ total }}
+
+                        </span>
+
+                    </h4>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<div class="card">
+
+<div class="table-responsive">
+
+<table class="table table-hover">
+
+<thead>
+
+<tr>
+
+<th>Veículo</th>
+
+<th>Tipo</th>
+
+<th>Data</th>
+
+<th>Valor</th>
+
+<th></th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for d in despesas %}
+
+<tr>
+
+<td>
+
+{{ d.veiculo }}
+
+</td>
+
+<td>
+
+{{ d.get_tipo_display }}
+
+</td>
+
+<td>
+
+{{ d.data|date:"d/m/Y" }}
+
+</td>
+
+<td>
+
+<strong>
+
+R$ {{ d.valor }}
+
+</strong>
+
+</td>
+
+<td>
+
+<a
+href="{% url 'despesa_editar' d.id %}"
+class="btn btn-sm btn-warning">
+
+Editar
+
+</a>
+
+<a
+href="{% url 'despesa_excluir' d.id %}"
+class="btn btn-sm btn-danger">
+
+Excluir
+
+</a>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="5" class="text-center">
+
+Nenhuma despesa cadastrada.
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+{% endblock %}

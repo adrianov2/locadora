@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LocaGestão">
+<meta name="theme-color" content="#0F2744">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<title>{% block title %}LocaGestão{% endblock %}</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+{% load static %}
+{% load pwa %}
+
+{% progressive_web_app_meta %}
+<style>
+  :root {
+    --navy: #0F2744;
+    --navy-mid: #1a3a5c;
+    --navy-light: #243f6a;
+    --blue: #2563EB;
+    --blue-light: #3b82f6;
+    --green: #10B981;
+    --amber: #F59E0B;
+    --red: #EF4444;
+    --text: #F8FAFC;
+    --text-muted: #94a3b8;
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --sidebar-w: 240px;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); font-family: 'Inter', system-ui, sans-serif; margin: 0; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar {
+    position: fixed; top: 0; left: 0; height: 100vh;
+    width: var(--sidebar-w); background: var(--navy);
+    display: flex; flex-direction: column; z-index: 1000;
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+  }
+  .sidebar-brand {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--navy-light);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .sidebar-brand .brand-icon {
+    width: 40px; height: 40px; background: var(--blue);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .sidebar-brand .brand-name { color: white; font-weight: 700; font-size: 17px; line-height: 1.2; }
+  .sidebar-brand .brand-sub { color: var(--text-muted); font-size: 11px; }
+
+  .sidebar-section { padding: 16px 12px 8px; color: var(--text-muted); font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .sidebar-nav { flex: 1; padding: 0 8px; }
+  .nav-item { margin-bottom: 2px; }
+  .nav-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 12px; border-radius: 8px;
+    color: var(--text-muted); text-decoration: none;
+    font-size: 14px; font-weight: 500; transition: all 0.15s;
+  }
+  .nav-link:hover { background: var(--navy-light); color: white; }
+  .nav-link.active { background: var(--blue); color: white; }
+  .nav-link i { font-size: 16px; width: 20px; text-align: center; }
+
+  .sidebar-footer {
+    padding: 16px 12px;
+    border-top: 1px solid var(--navy-light);
+  }
+  .user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .user-avatar {
+    width: 36px; height: 36px; background: var(--blue); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 14px; flex-shrink: 0;
+  }
+  .user-name { color: white; font-size: 13px; font-weight: 600; }
+  .user-role { color: var(--text-muted); font-size: 11px; }
+  .btn-logout {
+    display: flex; align-items: center; gap: 8px;
+    color: var(--text-muted); text-decoration: none; font-size: 13px;
+    padding: 8px 10px; border-radius: 6px; transition: all 0.15s; width: 100%;
+  }
+  .btn-logout:hover { background: rgba(239,68,68,0.15); color: var(--red); }
+
+  /* MAIN */
+  .main-content { margin-left: var(--sidebar-w); min-height: 100vh; }
+  .topbar {
+    background: white; border-bottom: 1px solid #e2e8f0;
+    padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-title { font-size: 18px; font-weight: 700; color: var(--navy); }
+  .hamburger { display: none; background: none; border: none; font-size: 22px; color: var(--navy); cursor: pointer; }
+  .page-body { padding: 24px; }
+
+  /* CARDS */
+  .stat-card {
+    background: white; border-radius: 14px; padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07); border: 1px solid #e8edf5;
+    position: relative; overflow: hidden;
+  }
+  .stat-card .stat-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; margin-bottom: 12px;
+  }
+  .stat-card .stat-value { font-size: 26px; font-weight: 800; color: var(--navy); font-variant-numeric: tabular-nums; }
+  .stat-card .stat-label { font-size: 13px; color: #64748b; margin-top: 2px; }
+
+  .card { border-radius: 14px; border: 1px solid #e8edf5; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .card-header { background: white; border-bottom: 1px solid #e8edf5; border-radius: 14px 14px 0 0 !important; padding: 16px 20px; font-weight: 700; color: var(--navy); }
+
+  /* BADGES */
+  .badge-disponivel { background: #d1fae5; color: #065f46; }
+  .badge-alugado { background: #dbeafe; color: #1e40af; }
+  .badge-manutencao { background: #fef3c7; color: #92400e; }
+  .badge-pago { background: #d1fae5; color: #065f46; }
+  .badge-pendente { background: #fef3c7; color: #92400e; }
+  .badge-atrasado { background: #fee2e2; color: #991b1b; }
+  .badge-ativa { background: #dbeafe; color: #1e40af; }
+  .badge-finalizada { background: #d1fae5; color: #065f46; }
+  .badge-cancelada { background: #f1f5f9; color: #64748b; }
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  }
+
+  /* ALERTS */
+  .alert-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 16px; border-radius: 10px; margin-bottom: 8px;
+  }
+  .alert-item.danger { background: #fef2f2; border-left: 4px solid var(--red); }
+  .alert-item.warning { background: #fffbeb; border-left: 4px solid var(--amber); }
+  .alert-item .alert-icon { font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+  .alert-item.danger .alert-icon { color: var(--red); }
+  .alert-item.warning .alert-icon { color: var(--amber); }
+  .alert-item .alert-text { font-size: 13px; color: #374151; line-height: 1.4; }
+
+  /* FORM */
+  .form-label { font-weight: 600; font-size: 13px; color: #374151; }
+  .form-control, .form-select {
+    border-radius: 8px; border: 1.5px solid #e2e8f0; padding: 10px 14px;
+    font-size: 14px; transition: border 0.15s;
+  }
+  .form-control:focus, .form-select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .section-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-muted); margin: 24px 0 12px; border-bottom: 1px solid #e8edf5; padding-bottom: 8px;
+  }
+
+  /* BTN */
+  .btn-primary { background: var(--blue); border-color: var(--blue); }
+  .btn-primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+  .btn-navy { background: var(--navy); border-color: var(--navy); color: white; }
+  .btn-navy:hover { background: var(--navy-mid); color: white; }
+
+  /* TABLE */
+  .table-custom thead th {
+    background: #f8fafc; font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em; color: #64748b;
+    border-bottom: 2px solid #e2e8f0; padding: 12px 16px;
+  }
+  .table-custom tbody td { padding: 13px 16px; vertical-align: middle; font-size: 14px; border-color: #f1f5f9; }
+  .table-custom tbody tr:hover { background: #f8fafc; }
+
+  /* OVERLAY */
+  .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; }
+
+  /* MOBILE */
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay.open { display: block; }
+    .main-content { margin-left: 0; }
+    .hamburger { display: block; }
+    .page-body { padding: 16px; }
+    .stat-card .stat-value { font-size: 22px; }
+  }
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">🚗</div>
+    <div>
+      <div class="brand-name">LocaGestão</div>
+      <div class="brand-sub">Gestão de Locadora</div>
+    </div>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="sidebar-section">Principal</div>
+    <div class="nav-item">
+      <a href="/" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <i class="bi bi-speedometer2"></i> Dashboard
+      </a>
+    </div>
+
+    <div class="sidebar-section">Cadastros</div>
+    <div class="nav-item">
+      <a href="/clientes/" class="nav-link {% if 'cliente' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-people"></i> Clientes
+      </a>
+    </div>
+    <div class="nav-item">
+      <a href="/veiculos/" class="nav-link {% if 'veiculo' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-car-front"></i> Veículos
+      </a>
+    </div>
+
+    <div class="sidebar-section">Operações</div>
+    <div class="nav-item">
+      <a href="/locacoes/" class="nav-link {% if 'locacao' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-key"></i> Locações
+      </a>
+    </div>
+    <div class="nav-item">
+      <a href="/pagamentos/" class="nav-link {% if 'pagamento' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-cash-coin"></i> Pagamentos
+      </a>
+    </div>
+
+    <div class="nav-item">
+    <a href="/despesas/" class="nav-link {% if 'despesa' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-wallet2"></i> Despesas
+    </a>
+    </div>
+
+    <div class="nav-item">
+      <a href="/manutencoes/" class="nav-link {% if 'manutencao' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-tools"></i> Manutenções
+      </a>
+    </div>
+
+    <div class="sidebar-section">Financeiro</div>
+    <div class="nav-item">
+      <a href="/financeiro/" class="nav-link {% if request.resolver_match.url_name == 'financeiro' %}active{% endif %}">
+        <i class="bi bi-graph-up-arrow"></i> Fluxo de Caixa
+      </a>
+    </div>
+    <div class="nav-item">
+      <a href="/relatorios/" class="nav-link {% if request.resolver_match.url_name == 'relatorios' %}active{% endif %}">
+        <i class="bi bi-file-earmark-bar-graph"></i> Relatórios
+      </a>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>
+      <div>
+        <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+        <div class="user-role">{{ request.user.perfil|title }}</div>
+      </div>
+    </div>
+    <form method="post" action="/logout/">
+      {% csrf_token %}
+      <button type="submit" class="btn-logout"><i class="bi bi-box-arrow-left"></i> Sair</button>
+    </form>
+  </div>
+</nav>
+
+<div class="main-content">
+  <div class="topbar">
+    <div class="d-flex align-items-center gap-3">
+      <button class="hamburger" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+      <span class="topbar-title">{% block page_title %}{% endblock %}</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      {% block topbar_actions %}{% endblock %}
+    </div>
+  </div>
+
+  <div class="page-body">
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert" style="border-radius:10px;">
+          {{ msg }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,62 @@
+{% extends 'gestao/base.html' %}
+
+{% block page_title %}
+Excluir Despesa
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+<div class="card-body">
+
+<h4>
+
+Deseja realmente excluir esta despesa?
+
+</h4>
+
+<br>
+
+<p>
+
+<b>Veículo:</b>
+
+{{ despesa.veiculo }}
+
+</p>
+
+<p>
+
+<b>Valor:</b>
+
+R$ {{ despesa.valor }}
+
+</p>
+
+<form method="post">
+
+{% csrf_token %}
+
+<button
+class="btn btn-danger">
+
+Excluir
+
+</button>
+
+<a
+href="{% url 'despesas_lista' %}"
+class="btn btn-secondary">
+
+Cancelar
+
+</a>
+
+</form>
+
+</div>
+
+</div>
+
+{% endblock %}

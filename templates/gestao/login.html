@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>LocaGestão — Login</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0F2744 0%, #1a3a5c 60%, #243f6a 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: system-ui, sans-serif; padding: 20px;
+  }
+  .login-card {
+    background: white; border-radius: 20px;
+    padding: 44px 40px; width: 100%; max-width: 400px;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+  }
+  .login-icon {
+    width: 64px; height: 64px; background: #0F2744;
+    border-radius: 16px; display: flex; align-items: center;
+    justify-content: center; font-size: 30px; margin: 0 auto 20px;
+  }
+  h1 { text-align: center; color: #0F2744; font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 32px; }
+  .form-label { font-weight: 600; font-size: 13px; color: #374151; }
+  .form-control {
+    border-radius: 10px; border: 1.5px solid #e2e8f0;
+    padding: 12px 16px; font-size: 15px;
+  }
+  .form-control:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+  .btn-login {
+    background: #0F2744; border: none; color: white;
+    border-radius: 10px; padding: 13px; font-size: 15px;
+    font-weight: 700; width: 100%; margin-top: 8px;
+    transition: background 0.2s;
+  }
+  .btn-login:hover { background: #1a3a5c; }
+  .input-group-text { border-radius: 10px 0 0 10px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-right: none; color: #64748b; }
+  .input-group .form-control { border-radius: 0 10px 10px 0; border-left: none; }
+  .input-group .form-control:focus { border-color: #2563EB; }
+</style>
+</head>
+<body>
+<div class="login-card">
+  <div class="login-icon">🚗</div>
+  <h1>LocaGestão</h1>
+  <p class="subtitle">Sistema de Gestão de Locadora</p>
+
+  {% if messages %}
+    {% for msg in messages %}
+    <div class="alert alert-danger" style="border-radius:10px; font-size:14px;">
+      <i class="bi bi-exclamation-circle me-2"></i>{{ msg }}
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Usuário</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-person"></i></span>
+        <input type="text" name="username" class="form-control" placeholder="Digite seu usuário" required autofocus>
+      </div>
+    </div>
+    <div class="mb-4">
+      <label class="form-label">Senha</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+        <input type="password" name="password" class="form-control" placeholder="Digite sua senha" required>
+      </div>
+    </div>
+    <button type="submit" class="btn-login">
+      <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+    </button>
+  </form>
+</div>
+</body>
+</html>
