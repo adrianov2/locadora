@@ -183,6 +183,7 @@ class Pagamento(models.Model):
     observacoes = models.TextField(blank=True)
     criado_em = models.DateTimeField(auto_now_add=True)
 
+
 class Despesa(models.Model):
 
     TIPO_CHOICES = [
@@ -231,8 +232,14 @@ class Despesa(models.Model):
         verbose_name_plural = 'Despesas'
 
     def __str__(self):
-        return f'{self.veiculo} - {self.get_tipo_display()}'    
+        return (
+            f'{self.veiculo} - '
+            f'{self.get_tipo_display()} - '
+            f'R$ {self.valor:.2f}'
+        )
+    
 
+    
     class Meta:
         ordering = ['-data']
         verbose_name = 'Despesa'
