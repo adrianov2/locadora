@@ -80,10 +80,109 @@ def login_view(request):
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 
+from datetime import date, timedelta
+from decimal import Decimal
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
+from django.shortcuts import render
+import json
+import traceback
+
+
 @login_required
 def dashboard(request):
-    return HttpResponse("Dashboard funcionando!")
+    try:
+        hoje = date.today()
+        mes_atual = hoje.month
+        ano_atual = hoje.year
 
+        receita_mes = Pagamento.objects.filter(
+            data_pagamento__month=mes_atual,
+            data_pagamento__year=ano_atual,
+            situacao='pago'
+        ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+
+        gastos_mes = Manutencao.objects.filter(
+            data__month=mes_atual,
+            data__year=ano_atual
+        ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+
+        lucro_mes = receita_mes - gastos_mes
+
+        pag_hoje = Pagamento.objects.filter(
+            data_vencimento=hoje,
+            situacao='pendente'
+        ).count()
+
+        pag_atrasados = Pagamento.objects.filter(
+            data_vencimento__lt=hoje,
+            situacao__in=['pendente', 'atrasado']
+        ).count()
+
+        veiculos_alugados = Veiculo.objects.filter(status='alugado').count()
+        veiculos_disponiveis = Veiculo.objects.filter(status='disponivel').count()
+        veiculos_manutencao = Veiculo.objects.filter(status='manutencao').count()
+
+        meses_labels = []
+        receitas_data = []
+        gastos_data = []
+
+        for i in range(5, -1, -1):
+            d = hoje - timedelta(days=30 * i)
+
+            meses_labels.append(d.strftime('%b/%y'))
+
+            r = Pagamento.objects.filter(
+                data_pagamento__month=d.month,
+                data_pagamento__year=d.year,
+                situacao='pago'
+            ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+
+            g = Manutencao.objects.filter(
+                data__month=d.month,
+                data__year=d.year
+            ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+
+            receitas_data.append(float(r))
+            gastos_data.append(float(g))
+
+        try:
+            locacoes_recentes = (
+                Locacao.objects
+                .select_related('cliente', 'veiculo')
+                .filter(status='ativa')[:5]
+            )
+        except Exception:
+            traceback.print_exc()
+            locacoes_recentes = []
+
+        try:
+            alertas = get_alertas()
+        except Exception:
+            traceback.print_exc()
+            alertas = []
+
+        ctx = {
+            'receita_mes': receita_mes,
+            'gastos_mes': gastos_mes,
+            'lucro_mes': lucro_mes,
+            'pag_hoje': pag_hoje,
+            'pag_atrasados': pag_atrasados,
+            'veiculos_alugados': veiculos_alugados,
+            'veiculos_disponiveis': veiculos_disponiveis,
+            'veiculos_manutencao': veiculos_manutencao,
+            'locacoes_recentes': locacoes_recentes,
+            'alertas': alertas,
+            'meses_labels': json.dumps(meses_labels),
+            'receitas_data': json.dumps(receitas_data),
+            'gastos_data': json.dumps(gastos_data),
+        }
+
+        return render(request, 'gestao/dashboard.html', ctx)
+
+    except Exception:
+        traceback.print_exc()
+        raise
 
 @login_required
 def clientes_lista(request):
