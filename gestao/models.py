@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
 
+
 class Usuario(AbstractUser):
     PERFIL_CHOICES = [('admin', 'Administrador'), ('funcionario', 'Funcionário')]
     perfil = models.CharField(max_length=20, choices=PERFIL_CHOICES, default='funcionario')
