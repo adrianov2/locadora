@@ -157,7 +157,7 @@ def dashboard(request):
             locacoes_recentes = []
 
         try:
-            alertas = get_alertas()
+            alertas = []
         except Exception:
             traceback.print_exc()
             alertas = []
