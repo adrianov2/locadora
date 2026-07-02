@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv(
@@ -26,6 +27,7 @@ INSTALLED_APPS = [
     'gestao',
     'pwa',
 ]
+
 PWA_APP_NAME = "LocaGestão"
 
 PWA_APP_DESCRIPTION = "Sistema de Gestão para Locadora"
@@ -68,6 +70,7 @@ PWA_APP_LANG = "pt-BR"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -97,10 +100,10 @@ TEMPLATES = [{
 WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+    )
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -115,6 +118,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
