@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from decimal import Decimal
 from datetime import date, timedelta
-
+import traceback
 from .models import Cliente, Veiculo, Locacao, Pagamento, Manutencao, Despesa, LogAcesso, Usuario
 from .forms import ClienteForm, VeiculoForm, LocacaoForm, PagamentoForm, ManutencaoForm,DespesaForm, LocacaoFinalizarForm
 
@@ -77,12 +77,31 @@ def login_view(request):
             messages.error(request, 'Usuário ou senha inválidos.')
     return render(request, 'gestao/login.html')
 
+import traceback
 
 @login_required
 def dashboard(request):
-    hoje = date.today()
-    mes_atual = hoje.month
-    ano_atual = hoje.year
+    try:
+        hoje = date.today()
+        mes_atual = hoje.month
+        ano_atual = hoje.year
+
+        receita_mes = Pagamento.objects.filter(
+            data_pagamento__month=mes_atual,
+            data_pagamento__year=ano_atual,
+            situacao='pago'
+        ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+
+        # ...todo o restante do código da função...
+
+        return render(request, 'gestao/dashboard.html', ctx)
+
+    except Exception:
+        print("=" * 80)
+        print("ERRO NO DASHBOARD")
+        traceback.print_exc()
+        print("=" * 80)
+        raise
 
     receita_mes = Pagamento.objects.filter(
         data_pagamento__month=mes_atual,
