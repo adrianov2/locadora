@@ -77,23 +77,13 @@ def login_view(request):
             messages.error(request, 'Usuário ou senha inválidos.')
     return render(request, 'gestao/login.html')
 
-import traceback
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 
 @login_required
 def dashboard(request):
-    try:
-        hoje = date.today()
+    return HttpResponse("Dashboard funcionando!")
 
-        # TODO: coloque aqui TODO o código atual da função dashboard
-        # até o:
-        return render(request, 'gestao/dashboard.html', ctx)
-
-    except Exception as e:
-        print("=" * 80)
-        print("ERRO NO DASHBOARD")
-        traceback.print_exc()
-        print("=" * 80)
-        raise
 
 @login_required
 def clientes_lista(request):
