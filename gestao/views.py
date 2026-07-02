@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from decimal import Decimal
 from datetime import date, timedelta
-import traceback
+
 from .models import Cliente, Veiculo, Locacao, Pagamento, Manutencao, Despesa, LogAcesso, Usuario
 from .forms import ClienteForm, VeiculoForm, LocacaoForm, PagamentoForm, ManutencaoForm,DespesaForm, LocacaoFinalizarForm
 
@@ -77,31 +77,11 @@ def login_view(request):
             messages.error(request, 'Usuário ou senha inválidos.')
     return render(request, 'gestao/login.html')
 
-import traceback
-
 @login_required
 def dashboard(request):
-    try:
-        hoje = date.today()
-        mes_atual = hoje.month
-        ano_atual = hoje.year
-
-        receita_mes = Pagamento.objects.filter(
-            data_pagamento__month=mes_atual,
-            data_pagamento__year=ano_atual,
-            situacao='pago'
-        ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
-
-        # ...todo o restante do código da função...
-
-        return render(request, 'gestao/dashboard.html', ctx)
-
-    except Exception:
-        print("=" * 80)
-        print("ERRO NO DASHBOARD")
-        traceback.print_exc()
-        print("=" * 80)
-        raise
+    hoje = date.today()
+    mes_atual = hoje.month
+    ano_atual = hoje.year
 
     receita_mes = Pagamento.objects.filter(
         data_pagamento__month=mes_atual,
@@ -116,34 +96,47 @@ def dashboard(request):
 
     lucro_mes = receita_mes - gastos_mes
 
-    pag_hoje = Pagamento.objects.filter(data_vencimento=hoje, situacao='pendente').count()
-    pag_atrasados = Pagamento.objects.filter(data_vencimento__lt=hoje, situacao__in=['pendente', 'atrasado']).count()
+    pag_hoje = Pagamento.objects.filter(
+        data_vencimento=hoje,
+        situacao='pendente'
+    ).count()
+
+    pag_atrasados = Pagamento.objects.filter(
+        data_vencimento__lt=hoje,
+        situacao__in=['pendente', 'atrasado']
+    ).count()
 
     veiculos_alugados = Veiculo.objects.filter(status='alugado').count()
     veiculos_disponiveis = Veiculo.objects.filter(status='disponivel').count()
     veiculos_manutencao = Veiculo.objects.filter(status='manutencao').count()
 
-    # Dados para gráficos (últimos 6 meses)
+    # gráficos
     meses_labels = []
     receitas_data = []
     gastos_data = []
+
     for i in range(5, -1, -1):
         d = hoje - timedelta(days=30 * i)
-        label = d.strftime('%b/%y')
-        meses_labels.append(label)
+        meses_labels.append(d.strftime('%b/%y'))
+
         r = Pagamento.objects.filter(
             data_pagamento__month=d.month,
             data_pagamento__year=d.year,
             situacao='pago'
         ).aggregate(total=Sum('valor'))['total'] or 0
+
         g = Manutencao.objects.filter(
             data__month=d.month,
             data__year=d.year
         ).aggregate(total=Sum('valor'))['total'] or 0
+
         receitas_data.append(float(r))
         gastos_data.append(float(g))
 
-    locacoes_recentes = Locacao.objects.select_related('cliente', 'veiculo').filter(status='ativa')[:5]
+    locacoes_recentes = Locacao.objects.select_related(
+        'cliente', 'veiculo'
+    ).filter(status='ativa')[:5]
+
     alertas = get_alertas()
 
     ctx = {
@@ -161,8 +154,8 @@ def dashboard(request):
         'receitas_data': json.dumps(receitas_data),
         'gastos_data': json.dumps(gastos_data),
     }
-    return render(request, 'gestao/dashboard.html', ctx)
 
+    return render(request, 'gestao/dashboard.html', ctx)
 
 @login_required
 def clientes_lista(request):

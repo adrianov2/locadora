@@ -38,12 +38,6 @@ urlpatterns = [
     path('manutencoes/nova/', views.manutencao_form, name='manutencao_nova'),
     path('manutencoes/<int:pk>/editar/', views.manutencao_form, name='manutencao_editar'),
 
-    # Despesas
-    path('despesas/', views.despesas_lista, name='despesas_lista'),
-    path('despesas/nova/', views.despesa_form, name='despesa_nova'),
-    path('despesas/<int:pk>/editar/', views.despesa_form, name='despesa_editar'),
-    path('despesas/<int:pk>/excluir/', views.despesa_excluir, name='despesa_excluir'),
-
     # Relatórios
     path('relatorios/', views.relatorios, name='relatorios'),
     path('relatorios/pdf/<str:tipo>/', views.relatorio_pdf, name='relatorio_pdf'),
