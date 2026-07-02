@@ -157,10 +157,9 @@ def dashboard(request):
             locacoes_recentes = []
 
         try:
-            alertas = []
+           alertas = get_alertas()
         except Exception:
-            traceback.print_exc()
-            alertas = []
+           alertas = []
 
         ctx = {
             'receita_mes': receita_mes,

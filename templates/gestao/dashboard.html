@@ -4,17 +4,17 @@
 
 {% block content %}
 <!-- ALERTAS -->
-{% if alertas %}
+<!---{% if alertas %}--->
 <div class="mb-4">
   <h6 class="section-title" style="margin-top:0">⚠️ Alertas Importantes</h6>
   {% for alerta in alertas|slice:":8" %}
-  <div class="alert-item {{ alerta.tipo }}">
+  <div class="alert-item {{ alerta.tipo|default:"info" }}">
     <span class="alert-icon">{% if alerta.tipo == 'danger' %}🔴{% else %}🟡{% endif %}</span>
-    <span class="alert-text">{{ alerta.mensagem }}</span>
+    <span class="alert-text">{{ alerta.mensagem|default:"" }}</span>
   </div>
   {% endfor %}
 </div>
-{% endif %}
+<!----{% endif %}-->
 
 <!-- STATS -->
 <div class="row g-3 mb-4">
@@ -129,10 +129,9 @@
 {% block extra_js %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-const labels = {{ meses_labels|safe }};
-const receitas = {{ receitas_data|safe }};
-const gastos = {{ gastos_data|safe }};
-
+{{ meses_labels|json_script:"labels-data" }}
+{{ receitas_data|json_script:"receitas-data" }}
+{{ gastos_data|json_script:"gastos-data" }}
 new Chart(document.getElementById('chartReceitas'), {
   type: 'bar',
   data: {
