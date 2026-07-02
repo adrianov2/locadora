@@ -3,54 +3,49 @@ import os
 import sys
 
 
-def create_superuser():
-    """
-    Cria um superusuário automaticamente caso ainda não exista.
-    """
+def criar_superusuario():
+    from django.contrib.auth import get_user_model
 
-    try:
-        import django
+    User = get_user_model()
 
-        django.setup()
+    username = os.getenv("ADMIN_USERNAME")
+    email = os.getenv("ADMIN_EMAIL")
+    password = os.getenv("ADMIN_PASSWORD")
 
-        from django.contrib.auth import get_user_model
+    if not username or not password:
+        return
 
-        User = get_user_model()
+    if not User.objects.filter(username=username).exists():
+        print("Criando superusuário...")
 
-        username = os.getenv("DJANGO_SUPERUSER_USERNAME")
-        email = os.getenv("DJANGO_SUPERUSER_EMAIL")
-        password = os.getenv("DJANGO_SUPERUSER_PASSWORD")
+        User.objects.create_superuser(
+            username=username,
+            email=email,
+            password=password,
+        )
 
-        if username and password:
-            if not User.objects.filter(username=username).exists():
-                User.objects.create_superuser(
-                    username=username,
-                    email=email,
-                    password=password,
-                )
-                print("✅ Superusuário criado com sucesso!")
-            else:
-                print("ℹ️ Superusuário já existe.")
-
-    except Exception as e:
-        print(f"Erro ao criar superusuário: {e}")
+        print("Superusuário criado com sucesso!")
+    else:
+        print("Superusuário já existe.")
 
 
 def main():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
 
-    try:
-        from django.core.management import execute_from_command_line
-    except ImportError as exc:
-        raise ImportError(
-            "Couldn't import Django. "
-            "Are you sure it's installed?"
-        ) from exc
-
-    if len(sys.argv) > 1 and sys.argv[1] == "runserver":
-        create_superuser()
+    from django.core.management import execute_from_command_line
 
     execute_from_command_line(sys.argv)
+
+    if sys.argv[1:] and sys.argv[1] == "migrate":
+        try:
+            import django
+
+            django.setup()
+
+            criar_superusuario()
+
+        except Exception as e:
+            print("Erro ao criar superusuário:", e)
 
 
 if __name__ == "__main__":
