@@ -46,12 +46,12 @@ urlpatterns = [
     # Financeiro
     path('financeiro/', views.financeiro, name='financeiro'),
 
-    # Despesas
+  # Despesas
     path('despesas/', views.despesas_lista, name='despesas_lista'),
     path('despesas/nova/', views.despesa_form, name='despesa_nova'),
     path('despesas/<int:pk>/editar/', views.despesa_form, name='despesa_editar'),
     path('despesas/<int:pk>/excluir/', views.despesa_excluir, name='despesa_excluir'),
-
+    
     # PWA
     path('manifest.json', views.manifest_json, name='manifest_json'),
     path('sw.js', views.service_worker, name='service_worker'),
