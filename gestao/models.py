@@ -165,6 +165,7 @@ class Locacao(models.Model):
     def __str__(self):
         return f'{self.cliente} - {self.veiculo} - {self.data_retirada}'
 
+
 class Pagamento(models.Model):
     SITUACAO_CHOICES = [
         ('pago', 'Pago'),

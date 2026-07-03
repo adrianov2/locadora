@@ -280,6 +280,7 @@ def locacao_form(request, pk=None):
         # Atualiza status do veículo
         obj.veiculo.status = 'alugado'
         obj.veiculo.save()
+        
         # Cria primeiro ciclo de pagamento (a cada X dias)
         if not pk:
             Pagamento.objects.create(
