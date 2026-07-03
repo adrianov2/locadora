@@ -132,6 +132,10 @@
 {{ meses_labels|json_script:"labels-data" }}
 {{ receitas_data|json_script:"receitas-data" }}
 {{ gastos_data|json_script:"gastos-data" }}
+
+const labels = JSON.parse(document.getElementById("labels-data").textContent);
+const receitas = JSON.parse(document.getElementById("receitas-data").textContent);
+const gastos = JSON.parse(document.getElementById("gastos-data").textContent);
 new Chart(document.getElementById('chartReceitas'), {
   type: 'bar',
   data: {

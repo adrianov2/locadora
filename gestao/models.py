@@ -148,6 +148,10 @@ class Locacao(models.Model):
     data_devolucao_real = models.DateField(null=True, blank=True)
     hora_devolucao_real = models.TimeField(null=True, blank=True)
     valor_combinado = models.DecimalField(max_digits=10, decimal_places=2)
+    periodicidade_dias = models.IntegerField(
+        default=8,
+        help_text='A cada quantos dias o pagamento se renova (padrão: 8 dias)'
+    )
     forma_pagamento = models.CharField(max_length=20, choices=PAGAMENTO_CHOICES)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ativa')
     observacoes = models.TextField(blank=True)
@@ -160,7 +164,6 @@ class Locacao(models.Model):
 
     def __str__(self):
         return f'{self.cliente} - {self.veiculo} - {self.data_retirada}'
-
 
 class Pagamento(models.Model):
     SITUACAO_CHOICES = [

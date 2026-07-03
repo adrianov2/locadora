@@ -280,19 +280,18 @@ def locacao_form(request, pk=None):
         # Atualiza status do veículo
         obj.veiculo.status = 'alugado'
         obj.veiculo.save()
-        # Cria pagamento automático
+        # Cria primeiro ciclo de pagamento (a cada X dias)
         if not pk:
             Pagamento.objects.create(
                 locacao=obj,
                 valor=obj.valor_combinado,
-                data_vencimento=obj.data_prevista_devolucao,
+                data_vencimento=obj.data_retirada + timedelta(days=obj.periodicidade_dias),
                 forma_pagamento=obj.forma_pagamento,
                 situacao='pendente'
             )
         messages.success(request, 'Locação registrada com sucesso!')
         return redirect('locacoes_lista')
     return render(request, 'gestao/locacao_form.html', {'form': form, 'locacao': locacao})
-
 
 @login_required
 def locacao_detalhe(request, pk):
@@ -337,7 +336,6 @@ def pagamento_form(request):
         return redirect('pagamentos_lista')
     return render(request, 'gestao/pagamento_form.html', {'form': form})
 
-
 @login_required
 def pagamento_pagar(request, pk):
     pagamento = get_object_or_404(Pagamento, pk=pk)
@@ -345,9 +343,22 @@ def pagamento_pagar(request, pk):
         pagamento.situacao = 'pago'
         pagamento.data_pagamento = date.today()
         pagamento.save()
-        messages.success(request, 'Pagamento marcado como pago!')
-    return redirect('pagamentos_lista')
 
+        locacao = pagamento.locacao
+        if locacao.status == 'ativa':
+            proximo_vencimento = pagamento.data_vencimento + timedelta(days=locacao.periodicidade_dias)
+            Pagamento.objects.create(
+                locacao=locacao,
+                valor=locacao.valor_combinado,
+                data_vencimento=proximo_vencimento,
+                forma_pagamento=locacao.forma_pagamento,
+                situacao='pendente'
+            )
+            messages.success(request, f'Pagamento confirmado! Próximo ciclo vence em {proximo_vencimento.strftime("%d/%m/%Y")}.')
+        else:
+            messages.success(request, 'Pagamento marcado como pago!')
+
+    return redirect('pagamentos_lista')
 
 @login_required
 def manutencoes_lista(request):
