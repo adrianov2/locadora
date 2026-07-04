@@ -6,19 +6,31 @@
   {% csrf_token %}
   <div class="card mb-3">
     <div class="card-body">
+      <p class="section-title" style="margin-top:0">Cliente e Veículo</p>
       <div class="row g-3">
         <div class="col-md-6"><label class="form-label">Cliente *</label>{{ form.cliente }}</div>
         <div class="col-md-6"><label class="form-label">Veículo *</label>{{ form.veiculo }}</div>
-        <div class="col-md-3"><label class="form-label">Data de Retirada *</label>{{ form.data_retirada }}</div>
-        <div class="col-md-3"><label class="form-label">Hora de Retirada *</label>{{ form.hora_retirada }}</div>
-        <div class="col-md-3"><label class="form-label">Devolução Prevista *</label>{{ form.data_prevista_devolucao }}</div>
-        <div class="col-md-3"><label class="form-label">Hora Devolução *</label>{{ form.hora_prevista_devolucao }}</div>
-        <div class="col-md-4"><label class="form-label">Valor Combinado *</label>{{ form.valor_combinado }}</div>
-<div class="col-md-4"><label class="form-label">Forma de Pagamento *</label>{{ form.forma_pagamento }}</div>
-<div class="col-md-4"><label class="form-label">Renovar a cada (dias) *</label>{{ form.periodicidade_dias }}</div>
-        <div class="col-md-4"><label class="form-label">Valor Combinado *</label>{{ form.valor_combinado }}</div>
+      </div>
+
+      <p class="section-title">Retirada</p>
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">Data *</label>{{ form.data_retirada }}</div>
+        <div class="col-md-6"><label class="form-label">Hora *</label>{{ form.hora_retirada }}</div>
+      </div>
+
+      <p class="section-title">Pagamento</p>
+      <div class="row g-3">
+        <div class="col-md-4"><label class="form-label">Valor por ciclo *</label>{{ form.valor_combinado }}</div>
         <div class="col-md-4"><label class="form-label">Forma de Pagamento *</label>{{ form.forma_pagamento }}</div>
-        <div class="col-12"><label class="form-label">Observações</label>{{ form.observacoes }}</div>
+        <div class="col-md-4"><label class="form-label">Renovar a cada *</label>{{ form.periodicidade_dias }}</div>
+      </div>
+
+      <p class="section-title">Observações</p>
+      {{ form.observacoes }}
+
+      <div class="d-none">
+        {{ form.data_prevista_devolucao }}
+        {{ form.hora_prevista_devolucao }}
       </div>
     </div>
   </div>
@@ -28,4 +40,37 @@
     <a href="/locacoes/" class="btn btn-outline-secondary">Cancelar</a>
   </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var horaRetirada = document.getElementById('{{ form.hora_retirada.id_for_label }}');
+  var horaDevolucao = document.getElementById('{{ form.hora_prevista_devolucao.id_for_label }}');
+  var dataRetirada = document.getElementById('{{ form.data_retirada.id_for_label }}');
+  var dataDevolucao = document.getElementById('{{ form.data_prevista_devolucao.id_for_label }}');
+  var periodicidade = document.getElementById('{{ form.periodicidade_dias.id_for_label }}');
+
+ 
+  // Preenche hora atual se estiver vazio (só em locação nova)
+  var agora = new Date();
+  var horaAtual = agora.toTimeString().slice(0, 5);
+  if (horaRetirada && !horaRetirada.value) horaRetirada.value = horaAtual;
+  if (horaDevolucao && !horaDevolucao.value) horaDevolucao.value = horaAtual;
+
+  function calcularDevolucao() {
+    if (!dataRetirada || !dataRetirada.value || !periodicidade) return;
+    var dias = parseInt(periodicidade.value || '8', 10);
+    var partes = dataRetirada.value.split('-');
+    var data = new Date(partes[0], partes[1] - 1, partes[2]);
+    data.setDate(data.getDate() + dias);
+    var yyyy = data.getFullYear();
+    var mm = String(data.getMonth() + 1).padStart(2, '0');
+    var dd = String(data.getDate()).padStart(2, '0');
+    if (dataDevolucao) dataDevolucao.value = yyyy + '-' + mm + '-' + dd;
+  }
+
+  if (dataRetirada) dataRetirada.addEventListener('change', calcularDevolucao);
+  if (periodicidade) periodicidade.addEventListener('change', calcularDevolucao);
+  calcularDevolucao();
+});
+</script>
 {% endblock %}

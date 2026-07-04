@@ -9,28 +9,21 @@
       <p class="section-title" style="margin-top:0">Dados Pessoais</p>
       <div class="row g-3">
         <div class="col-md-6"><label class="form-label">Nome *</label>{{ form.nome }}</div>
-        <div class="col-md-3"><label class="form-label">CPF *</label>{{ form.cpf }}</div>
-        <div class="col-md-3"><label class="form-label">RG</label>{{ form.rg }}</div>
-        <div class="col-md-4"><label class="form-label">Telefone</label>{{ form.telefone }}</div>
-        <div class="col-md-4"><label class="form-label">WhatsApp</label>{{ form.whatsapp }}</div>
-        <div class="col-md-4"><label class="form-label">E-mail</label>{{ form.email }}</div>
+        <div class="col-md-6"><label class="form-label">Sobrenome</label>{{ form.sobrenome }}</div>
+        <div class="col-md-4"><label class="form-label">CPF *</label>{{ form.cpf }}</div>
+        <div class="col-md-8"><label class="form-label">Endereço</label>{{ form.endereco }}</div>
       </div>
-      <p class="section-title">Endereço</p>
+      <p class="section-title">Foto do Documento</p>
       <div class="row g-3">
-        <div class="col-md-6"><label class="form-label">Endereço</label>{{ form.endereco }}</div>
-        <div class="col-md-3"><label class="form-label">Cidade</label>{{ form.cidade }}</div>
-        <div class="col-md-1"><label class="form-label">UF</label>{{ form.estado }}</div>
-        <div class="col-md-2"><label class="form-label">CEP</label>{{ form.cep }}</div>
+        <div class="col-md-6">
+          {{ form.foto_documento }}
+          {% if cliente.foto_documento %}
+            <div class="mt-2">
+              <img src="{{ cliente.foto_documento.url }}" alt="Documento" style="max-width:200px;border-radius:8px">
+            </div>
+          {% endif %}
+        </div>
       </div>
-     <p class="section-title">CNH</p>
-<div class="row g-3">
-    <div class="col-md-6">
-        <label class="form-label">Nº CNH</label>
-        {{ form.cnh }}
-    </div>
-</div>
-      <p class="section-title">Observações</p>
-      {{ form.observacoes }}
     </div>
   </div>
   {% for field in form %}{% if field.errors %}<div class="text-danger small mb-2">{{ field.label }}: {{ field.errors|join:", " }}</div>{% endif %}{% endfor %}

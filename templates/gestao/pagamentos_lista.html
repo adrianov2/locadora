@@ -11,7 +11,7 @@
 <div class="card">
   <div class="table-responsive">
     <table class="table table-custom mb-0">
-      <thead><tr><th>Cliente</th><th>Veículo</th><th>Valor</th><th>Vencimento</th><th>Pagamento</th><th>Situação</th><th>Ação</th></tr></thead>
+      <thead><tr><th>Cliente</th><th>Veículo</th><th>Valor</th><th>Vencimento</th><th>Pagamento</th><th>Situação</th><th>Ações</th></tr></thead>
       <tbody>
         {% for p in pagamentos %}
         <tr>
@@ -21,7 +21,7 @@
           <td>{{ p.data_vencimento|date:"d/m/Y" }}</td>
           <td>{{ p.get_forma_pagamento_display }}</td>
           <td><span class="status-badge badge-{{ p.situacao }}">{{ p.get_situacao_display }}</span></td>
-          <td>
+          <td class="d-flex gap-1 align-items-center">
             {% if p.situacao != 'pago' %}
             <form method="post" action="/pagamentos/{{ p.pk }}/pagar/" style="display:inline">
               {% csrf_token %}
@@ -30,6 +30,10 @@
             {% else %}
             <span class="text-muted small">{{ p.data_pagamento|date:"d/m/Y" }}</span>
             {% endif %}
+            <form method="post" action="/pagamentos/{{ p.pk }}/excluir/" style="display:inline" onsubmit="return confirm('Apagar este pagamento de R$ {{ p.valor }} de {{ p.locacao.cliente.nome }}? Essa ação não pode ser desfeita.');">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger" title="Apagar pagamento"><i class="bi bi-trash"></i></button>
+            </form>
           </td>
         </tr>
         {% empty %}

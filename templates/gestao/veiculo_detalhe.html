@@ -1,6 +1,6 @@
 {% extends 'gestao/base.html' %}
 {% block title %}{{ veiculo }} — LocaGestão{% endblock %}
-{% block page_title %}{{ veiculo.marca }} {{ veiculo.modelo }}{% endblock %}
+{% block page_title %}{{ veiculo.nome }} {{ veiculo.modelo }}{% endblock %}
 {% block topbar_actions %}
 <a href="/veiculos/{{ veiculo.pk }}/editar/" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>Editar</a>
 <a href="/manutencoes/nova/?veiculo={{ veiculo.pk }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-tools me-1"></i>Manutenção</a>
@@ -14,10 +14,8 @@
         <span class="status-badge badge-{{ veiculo.status }} mb-2 d-inline-block">{{ veiculo.get_status_display }}</span>
         <table class="table table-sm">
           <tr><td class="text-muted small">Placa</td><td><strong>{{ veiculo.placa }}</strong></td></tr>
-          <tr><td class="text-muted small">Ano/Cor</td><td>{{ veiculo.ano }} / {{ veiculo.cor }}</td></tr>
-          <tr><td class="text-muted small">KM</td><td>{{ veiculo.quilometragem }} km</td></tr>
-          <tr><td class="text-muted small">Renavam</td><td>{{ veiculo.renavam }}</td></tr>
-          <tr><td class="text-muted small">Chassi</td><td>{{ veiculo.chassi }}</td></tr>
+          <tr><td class="text-muted small">Nome/Modelo</td><td>{{ veiculo.nome }} {{ veiculo.modelo }}</td></tr>
+          <tr><td class="text-muted small">Cor</td><td>{{ veiculo.cor }}</td></tr>
         </table>
       </div>
     </div>

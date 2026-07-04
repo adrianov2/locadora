@@ -1,6 +1,6 @@
 {% extends 'gestao/base.html' %}
 {% block title %}{{ cliente.nome }} — LocaGestão{% endblock %}
-{% block page_title %}{{ cliente.nome }}{% endblock %}
+{% block page_title %}{{ cliente.nome }} {{ cliente.sobrenome }}{% endblock %}
 {% block topbar_actions %}
 <a href="/clientes/{{ cliente.pk }}/editar/" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>Editar</a>
 {% endblock %}
@@ -13,17 +13,18 @@
           <div style="width:70px;height:70px;background:#0F2744;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;color:white;font-weight:800;margin:0 auto">{{ cliente.nome|first }}</div>
         </div>
         <table class="table table-sm">
+          <tr><td class="text-muted small">Nome completo</td><td>{{ cliente.nome }} {{ cliente.sobrenome }}</td></tr>
           <tr><td class="text-muted small">CPF</td><td>{{ cliente.cpf }}</td></tr>
-          <tr><td class="text-muted small">WhatsApp</td><td>{{ cliente.whatsapp }}</td></tr>
-          <tr><td class="text-muted small">Telefone</td><td>{{ cliente.telefone }}</td></tr>
-          <tr><td class="text-muted small">Cidade</td><td>{{ cliente.cidade }}/{{ cliente.estado }}</td></tr>
-          <tr><td class="text-muted small">CNH</td><td>{{ cliente.cnh }} — Cat. {{ cliente.categoria_cnh }}</td></tr>
-          <tr><td class="text-muted small">Validade CNH</td><td>
-            {% if cliente.cnh_vencida %}<span class="text-danger fw-bold">{{ cliente.validade_cnh|date:"d/m/Y" }} (Vencida)</span>
-            {% else %}{{ cliente.validade_cnh|date:"d/m/Y" }}{% endif %}
-          </td></tr>
+          <tr><td class="text-muted small">Endereço</td><td>{{ cliente.endereco|default:"—" }}</td></tr>
         </table>
-        {% if cliente.observacoes %}<p class="small text-muted">{{ cliente.observacoes }}</p>{% endif %}
+        {% if cliente.foto_documento %}
+          <p class="text-muted small mb-1">Documento anexado</p>
+          <a href="{{ cliente.foto_documento.url }}" target="_blank">
+            <img src="{{ cliente.foto_documento.url }}" alt="Documento" style="max-width:100%;border-radius:8px">
+          </a>
+        {% else %}
+          <p class="text-muted small">Nenhum documento anexado.</p>
+        {% endif %}
       </div>
     </div>
   </div>

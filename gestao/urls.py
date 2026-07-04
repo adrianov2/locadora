@@ -27,12 +27,12 @@ urlpatterns = [
     path('locacoes/<int:pk>/', views.locacao_detalhe, name='locacao_detalhe'),
     path('locacoes/<int:pk>/editar/', views.locacao_form, name='locacao_editar'),
     path('locacoes/<int:pk>/finalizar/', views.locacao_finalizar, name='locacao_finalizar'),
-
+    path('locacoes/<int:pk>/renovar/', views.locacao_renovar, name='locacao_renovar'),
     # Pagamentos
     path('pagamentos/', views.pagamentos_lista, name='pagamentos_lista'),
     path('pagamentos/novo/', views.pagamento_form, name='pagamento_novo'),
     path('pagamentos/<int:pk>/pagar/', views.pagamento_pagar, name='pagamento_pagar'),
-
+    path('pagamentos/<int:pk>/excluir/', views.pagamento_excluir, name='pagamento_excluir'),
     # Manutenções
     path('manutencoes/', views.manutencoes_lista, name='manutencoes_lista'),
     path('manutencoes/nova/', views.manutencao_form, name='manutencao_nova'),

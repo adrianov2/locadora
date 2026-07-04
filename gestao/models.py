@@ -26,21 +26,11 @@ class LogAcesso(models.Model):
 
 
 class Cliente(models.Model):
-    nome = models.CharField(max_length=200)
+    nome = models.CharField(max_length=100)
+    sobrenome = models.CharField(max_length=100, blank=True)
     cpf = models.CharField(max_length=14, unique=True)
-    rg = models.CharField(max_length=20, blank=True)
-    telefone = models.CharField(max_length=20, blank=True)
-    whatsapp = models.CharField(max_length=20, blank=True)
-    email = models.EmailField(blank=True)
     endereco = models.CharField(max_length=300, blank=True)
-    cidade = models.CharField(max_length=100, blank=True)
-    estado = models.CharField(max_length=2, blank=True)
-    cep = models.CharField(max_length=9, blank=True)
-    cnh = models.CharField(max_length=20, blank=True)
-    categoria_cnh = models.CharField(max_length=5, blank=True)
-    validade_cnh = models.DateField(null=True, blank=True)
-    foto_cnh = models.ImageField(upload_to='cnh/', blank=True, null=True)
-    observacoes = models.TextField(blank=True)
+    foto_documento = models.ImageField(upload_to='clientes/documentos/', blank=True, null=True)
     ativo = models.BooleanField(default=True)
     criado_em = models.DateTimeField(auto_now_add=True)
 
@@ -49,7 +39,7 @@ class Cliente(models.Model):
         verbose_name = 'Cliente'
 
     def __str__(self):
-        return self.nome
+        return f'{self.nome} {self.sobrenome}'.strip()
 
     @property
     def cnh_vencida(self):
@@ -64,35 +54,26 @@ class Cliente(models.Model):
             return 0 <= dias <= 30
         return False
 
-
-
 class Veiculo(models.Model):
     STATUS_CHOICES = [
         ('disponivel', 'Disponível'),
         ('alugado', 'Alugado'),
         ('manutencao', 'Em Manutenção'),
     ]
-    marca = models.CharField(max_length=100)
-    modelo = models.CharField(max_length=100)
-    ano = models.IntegerField()
-    placa = models.CharField(max_length=10, unique=True)
+    nome = models.CharField(max_length=100, help_text='Ex: Onix, HB20, Civic')
+    modelo = models.CharField(max_length=100, help_text='Ex: LT, Sense, EXL')
     cor = models.CharField(max_length=50)
-    renavam = models.CharField(max_length=20, blank=True)
-    chassi = models.CharField(max_length=17, blank=True)
-    quilometragem = models.DecimalField(max_digits=10, decimal_places=1, default=0)
+    placa = models.CharField(max_length=10, unique=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='disponivel')
-    foto = models.ImageField(upload_to='veiculos/', blank=True, null=True)
-    observacoes = models.TextField(blank=True)
     ativo = models.BooleanField(default=True)
     criado_em = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['marca', 'modelo']
+        ordering = ['nome', 'modelo']
         verbose_name = 'Veículo'
 
     def __str__(self):
-        return f'{self.marca} {self.modelo} - {self.placa}'
-
+        return f'{self.nome} {self.modelo} - {self.placa}'
 
 class Manutencao(models.Model):
     TIPO_CHOICES = [
@@ -148,9 +129,15 @@ class Locacao(models.Model):
     data_devolucao_real = models.DateField(null=True, blank=True)
     hora_devolucao_real = models.TimeField(null=True, blank=True)
     valor_combinado = models.DecimalField(max_digits=10, decimal_places=2)
+    PERIODICIDADE_CHOICES = [
+        (7, 'A cada 7 dias'),
+        (8, 'A cada 8 dias'),
+        (15, 'A cada 15 dias'),
+        (30, 'A cada 30 dias'),
+    ]
     periodicidade_dias = models.IntegerField(
-        default=8,
-        help_text='A cada quantos dias o pagamento se renova (padrão: 8 dias)'
+        choices=PERIODICIDADE_CHOICES,
+        default=8
     )
     forma_pagamento = models.CharField(max_length=20, choices=PAGAMENTO_CHOICES)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ativa')

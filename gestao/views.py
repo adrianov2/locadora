@@ -188,9 +188,8 @@ def clientes_lista(request):
     q = request.GET.get('q', '')
     clientes = Cliente.objects.filter(ativo=True)
     if q:
-        clientes = clientes.filter(Q(nome__icontains=q) | Q(cpf__icontains=q) | Q(telefone__icontains=q))
+        clientes = clientes.filter(Q(nome__icontains=q) | Q(sobrenome__icontains=q) | Q(cpf__icontains=q))
     return render(request, 'gestao/clientes_lista.html', {'clientes': clientes, 'q': q})
-
 
 @login_required
 def cliente_form(request, pk=None):
@@ -259,6 +258,34 @@ def veiculo_excluir(request, pk):
         return redirect('veiculos_lista')
     return render(request, 'gestao/confirmar_exclusao.html', {'objeto': veiculo, 'tipo': 'veiculo'})
 
+@login_required
+def locacao_renovar(request, pk):
+    locacao = get_object_or_404(Locacao, pk=pk)
+    if request.method == 'POST':
+        hoje = date.today()
+        pagamento_pendente = locacao.pagamentos.filter(
+            situacao__in=['pendente', 'atrasado']
+        ).order_by('data_vencimento').first()
+
+        if pagamento_pendente:
+            pagamento_pendente.situacao = 'pago'
+            pagamento_pendente.data_pagamento = hoje
+            pagamento_pendente.save()
+            base_data = pagamento_pendente.data_vencimento
+        else:
+            base_data = hoje
+
+        proximo_vencimento = base_data + timedelta(days=locacao.periodicidade_dias)
+        Pagamento.objects.create(
+            locacao=locacao,
+            valor=locacao.valor_combinado,
+            data_vencimento=proximo_vencimento,
+            forma_pagamento=locacao.forma_pagamento,
+            situacao='pendente'
+        )
+        messages.success(request, f'Renovado! Próximo pagamento em {proximo_vencimento.strftime("%d/%m/%Y")}.')
+
+    return redirect('locacoes_lista')
 
 @login_required
 def locacoes_lista(request):
@@ -277,6 +304,7 @@ def locacao_form(request, pk=None):
         obj = form.save(commit=False)
         obj.criado_por = request.user
         obj.save()
+        
         # Atualiza status do veículo
         obj.veiculo.status = 'alugado'
         obj.veiculo.save()
@@ -359,6 +387,13 @@ def pagamento_pagar(request, pk):
         else:
             messages.success(request, 'Pagamento marcado como pago!')
 
+    return redirect('pagamentos_lista')
+@login_required
+def pagamento_excluir(request, pk):
+    pagamento = get_object_or_404(Pagamento, pk=pk)
+    if request.method == 'POST':
+        pagamento.delete()
+        messages.success(request, 'Pagamento removido.')
     return redirect('pagamentos_lista')
 
 @login_required

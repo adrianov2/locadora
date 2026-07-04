@@ -8,19 +8,11 @@
     <div class="card-body">
       <p class="section-title" style="margin-top:0">Dados do Veículo</p>
       <div class="row g-3">
-        <div class="col-md-3"><label class="form-label">Marca *</label>{{ form.marca }}</div>
+        <div class="col-md-4"><label class="form-label">Nome *</label>{{ form.nome }}</div>
         <div class="col-md-4"><label class="form-label">Modelo *</label>{{ form.modelo }}</div>
-        <div class="col-md-2"><label class="form-label">Ano *</label>{{ form.ano }}</div>
-        <div class="col-md-3"><label class="form-label">Cor</label>{{ form.cor }}</div>
-        <div class="col-md-3"><label class="form-label">Placa *</label>{{ form.placa }}</div>
-        <div class="col-md-3"><label class="form-label">Renavam</label>{{ form.renavam }}</div>
-        <div class="col-md-3"><label class="form-label">Chassi</label>{{ form.chassi }}</div>
-        <div class="col-md-3"><label class="form-label">Quilometragem</label>{{ form.quilometragem }}</div>
-        <div class="col-md-3"><label class="form-label">Status</label>{{ form.status }}</div>
-        <div class="col-md-4"><label class="form-label">Foto</label>{{ form.foto }}</div>
+        <div class="col-md-4"><label class="form-label">Cor</label>{{ form.cor }}</div>
+        <div class="col-md-4"><label class="form-label">Placa *</label>{{ form.placa }}</div>
       </div>
-      <p class="section-title">Observações</p>
-      {{ form.observacoes }}
     </div>
   </div>
   {% for field in form %}{% if field.errors %}<div class="text-danger small mb-2">{{ field.label }}: {{ field.errors|join:", " }}</div>{% endif %}{% endfor %}

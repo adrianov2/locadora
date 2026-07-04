@@ -14,20 +14,26 @@
 <div class="card">
   <div class="table-responsive">
     <table class="table table-custom mb-0">
-      <thead><tr><th>Cliente</th><th>Veículo</th><th>Retirada</th><th>Devolução Prev.</th><th>Valor</th><th>Pagto</th><th>Status</th><th>Ações</th></tr></thead>
+      <thead><tr><th>Cliente</th><th>Veículo</th><th>Retirada</th><th>Ciclo</th><th>Valor</th><th>Pagto</th><th>Status</th><th>Ações</th></tr></thead>
       <tbody>
         {% for loc in locacoes %}
         <tr>
-          <td><strong>{{ loc.cliente.nome }}</strong></td>
-          <td>{{ loc.veiculo.marca }} {{ loc.veiculo.modelo }}<br><small class="text-muted">{{ loc.veiculo.placa }}</small></td>
+          <td><strong>{{ loc.cliente.nome }} {{ loc.cliente.sobrenome }}</strong></td>
+          <td>{{ loc.veiculo.nome }} {{ loc.veiculo.modelo }}<br><small class="text-muted">{{ loc.veiculo.placa }}</small></td>
           <td>{{ loc.data_retirada|date:"d/m/Y" }}<br><small class="text-muted">{{ loc.hora_retirada|time:"H:i" }}</small></td>
-          <td>{{ loc.data_prevista_devolucao|date:"d/m/Y" }}<br><small class="text-muted">{{ loc.hora_prevista_devolucao|time:"H:i" }}</small></td>
+          <td><small class="text-muted">a cada {{ loc.periodicidade_dias }} dias</small></td>
           <td>R$ {{ loc.valor_combinado }}</td>
           <td><small>{{ loc.get_forma_pagamento_display }}</small></td>
           <td><span class="status-badge badge-{{ loc.status }}">{{ loc.get_status_display }}</span></td>
-          <td>
+          <td class="d-flex gap-1">
             <a href="/locacoes/{{ loc.pk }}/" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
             {% if loc.status == 'ativa' %}
+            <form method="post" action="/locacoes/{{ loc.pk }}/renovar/" onsubmit="return confirm('Renovar ciclo de {{ loc.periodicidade_dias }} dias para {{ loc.cliente.nome }}?');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-primary" title="Renovar ciclo de pagamento">
+                <i class="bi bi-arrow-repeat"></i> Renovar
+              </button>
+            </form>
             <a href="/locacoes/{{ loc.pk }}/finalizar/" class="btn btn-sm btn-success"><i class="bi bi-check2"></i></a>
             {% endif %}
           </td>

@@ -7,18 +7,15 @@ class ClienteForm(forms.ModelForm):
         model = Cliente
         exclude = ['ativo', 'criado_em']
         widgets = {
-            'validade_cnh': forms.DateInput(attrs={'type': 'date'}),
-            'observacoes': forms.Textarea(attrs={'rows': 3}),
+            'foto_documento': forms.FileInput(attrs={'capture': 'environment', 'accept': 'image/*'}),
+            'endereco': forms.TextInput(),
         }
 
 
 class VeiculoForm(forms.ModelForm):
     class Meta:
         model = Veiculo
-        exclude = ['ativo', 'criado_em']
-        widgets = {
-            'observacoes': forms.Textarea(attrs={'rows': 3}),
-        }
+        exclude = ['status', 'ativo', 'criado_em']
 
 
 class LocacaoForm(forms.ModelForm):
