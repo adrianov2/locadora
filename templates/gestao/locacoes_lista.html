@@ -1,5 +1,5 @@
 {% extends 'gestao/base.html' %}
-{% block title %}Locações — LocaGestão{% endblock %}
+{% block title %}Locações — LL Locadora{% endblock %}
 {% block page_title %}Locações{% endblock %}
 {% block topbar_actions %}
 <a href="/locacoes/nova/" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>Nova Locação</a>
@@ -11,6 +11,7 @@
   <a href="?status=finalizada" class="btn btn-sm {% if status == 'finalizada' %}btn-success{% else %}btn-outline-success{% endif %}">Finalizadas</a>
   <a href="?status=cancelada" class="btn btn-sm {% if status == 'cancelada' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Canceladas</a>
 </div>
+
 <div class="card">
   <div class="table-responsive">
     <table class="table table-custom mb-0">
@@ -36,6 +37,10 @@
             </form>
             <a href="/locacoes/{{ loc.pk }}/finalizar/" class="btn btn-sm btn-success"><i class="bi bi-check2"></i></a>
             {% endif %}
+            <form method="post" action="/locacoes/{{ loc.pk }}/excluir/" onsubmit="return confirm('Apagar esta locação de {{ loc.cliente.nome }} e todos os pagamentos relacionados? Essa ação não pode ser desfeita.');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir locação"><i class="bi bi-trash"></i></button>
+            </form>
           </td>
         </tr>
         {% empty %}

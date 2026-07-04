@@ -1,4 +1,4 @@
-# 🚗 LocaGestão — Sistema de Gestão para Locadora de Veículos
+# 🚗 LL Locadora — Sistema de Gestão para Locadora de Veículos
 
 Sistema completo para gerenciar clientes, veículos, locações, pagamentos e manutenções.
 Desenvolvido em **Django + SQLite** (desenvolvimento) e **PostgreSQL** (produção).

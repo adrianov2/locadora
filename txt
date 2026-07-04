@@ -1,0 +1,7 @@
+Passo a passo pra seu cliente instalar no iPad dele:
+
+Abrir o Safari (tem que ser Safari, não funciona pelo Chrome no iOS) e acessar https://locadora-eaym.onrender.com
+Fazer login normalmente
+Tocar no ícone de compartilhar (o quadrado com a seta pra cima, na barra de baixo do Safari)
+Rolar as opções e tocar em "Adicionar à Tela de Início"
+Confirmar o nome (já vai aparecer "LL Locadora") e tocar em "Adicionar"

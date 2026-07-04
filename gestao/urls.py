@@ -28,6 +28,8 @@ urlpatterns = [
     path('locacoes/<int:pk>/editar/', views.locacao_form, name='locacao_editar'),
     path('locacoes/<int:pk>/finalizar/', views.locacao_finalizar, name='locacao_finalizar'),
     path('locacoes/<int:pk>/renovar/', views.locacao_renovar, name='locacao_renovar'),
+    path('locacoes/<int:pk>/excluir/', views.locacao_excluir, name='locacao_excluir'),
+    
     # Pagamentos
     path('pagamentos/', views.pagamentos_lista, name='pagamentos_lista'),
     path('pagamentos/novo/', views.pagamento_form, name='pagamento_novo'),

@@ -7,7 +7,7 @@ class ClienteForm(forms.ModelForm):
         model = Cliente
         exclude = ['ativo', 'criado_em']
         widgets = {
-            'foto_documento': forms.FileInput(attrs={'capture': 'environment', 'accept': 'image/*'}),
+            'foto_documento': forms.FileInput(attrs={'accept': 'image/*'}),
             'endereco': forms.TextInput(),
         }
 

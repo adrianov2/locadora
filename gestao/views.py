@@ -343,6 +343,16 @@ def locacao_finalizar(request, pk):
         return redirect('locacoes_lista')
     return render(request, 'gestao/locacao_finalizar.html', {'form': form, 'locacao': locacao})
 
+@login_required
+def locacao_excluir(request, pk):
+    locacao = get_object_or_404(Locacao, pk=pk)
+    if request.method == 'POST':
+        if locacao.status == 'ativa':
+            locacao.veiculo.status = 'disponivel'
+            locacao.veiculo.save()
+        locacao.delete()
+        messages.success(request, 'Locação excluída (junto com seus pagamentos).')
+    return redirect('locacoes_lista')
 
 @login_required
 def pagamentos_lista(request):
@@ -354,6 +364,7 @@ def pagamentos_lista(request):
     hoje = date.today()
     pagamentos.filter(data_vencimento__lt=hoje, situacao='pendente').update(situacao='atrasado')
     return render(request, 'gestao/pagamentos_lista.html', {'pagamentos': pagamentos, 'situacao': situacao})
+
 
 
 @login_required
@@ -661,8 +672,8 @@ def relatorio_excel(request, tipo):
 
 def manifest_json(request):
     manifest = {
-        "name": "LocaGestão",
-        "short_name": "LocaGestão",
+        "name": "LL Locadora",
+        "short_name": "LL Locadora",
         "description": "Sistema de gestão para locadora de veículos",
         "start_url": "/",
         "display": "standalone",
@@ -680,10 +691,11 @@ def manifest_json(request):
 def service_worker(request):
     sw_content = """
 const CACHE_NAME = 'locagestao-v1';
-const urlsToCache = ['/', '/static/css/main.css'];
+const urlsToCache = ['/'];
 self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))));
 self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
 """
+    return HttpResponse(sw_content, content_type='application/javascript')
     return HttpResponse(sw_content, content_type='application/javascript')
 
 
