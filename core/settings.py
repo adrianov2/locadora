@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'pwa',
 ]
 
-PWA_APP_NAME = "LL Locadora"
+PWA_APP_NAME = "LM Locadora"
 
 PWA_APP_DESCRIPTION = "Sistema de Gestão para Locadora"
 

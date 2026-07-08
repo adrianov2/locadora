@@ -672,8 +672,8 @@ def relatorio_excel(request, tipo):
 
 def manifest_json(request):
     manifest = {
-        "name": "LL Locadora",
-        "short_name": "LL Locadora",
+        "name": "LM Locadora",
+        "short_name": "LM Locadora",
         "description": "Sistema de gestão para locadora de veículos",
         "start_url": "/",
         "display": "standalone",
