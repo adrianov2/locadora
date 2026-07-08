@@ -309,8 +309,16 @@ def locacao_form(request, pk=None):
         obj.veiculo.status = 'alugado'
         obj.veiculo.save()
         
-        # Cria primeiro ciclo de pagamento (a cada X dias)
+      # Cria primeiro ciclo de pagamento (a cada X dias)
         if not pk:
+            Pagamento.objects.create(
+                locacao=obj,
+                valor=obj.valor_combinado,
+                data_vencimento=obj.data_retirada,
+                data_pagamento=obj.data_retirada,
+                forma_pagamento=obj.forma_pagamento,
+                situacao='pago'
+            )
             Pagamento.objects.create(
                 locacao=obj,
                 valor=obj.valor_combinado,
