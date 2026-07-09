@@ -149,8 +149,15 @@ class Locacao(models.Model):
         ordering = ['-data_retirada']
         verbose_name = 'Locação'
 
+    data_inicio_real = models.DateField(
+    null=True, blank=True,
+    help_text="Preencha só se o cliente já está com o carro há mais tempo do que a data de retirada cadastrada"
+)
+
     def __str__(self):
         return f'{self.cliente} - {self.veiculo} - {self.data_retirada}'
+
+
 
 
 class Pagamento(models.Model):
@@ -175,9 +182,7 @@ class Pagamento(models.Model):
     observacoes = models.TextField(blank=True)
     criado_em = models.DateTimeField(auto_now_add=True)
 
-
 class Despesa(models.Model):
-
     TIPO_CHOICES = [
         ('manutencao', 'Manutenção'),
         ('oleo', 'Troca de Óleo'),
@@ -229,21 +234,3 @@ class Despesa(models.Model):
             f'{self.get_tipo_display()} - '
             f'R$ {self.valor:.2f}'
         )
-    
-
-    
-    class Meta:
-        ordering = ['-data']
-        verbose_name = 'Despesa'
-        verbose_name_plural = 'Despesas'
-
-    def __str__(self):
-        return f'{self.locacao} - R$ {self.valor} - {self.situacao}'
-
-    def atualizar_situacao(self):
-        hoje = timezone.now().date()
-        if self.situacao != 'pago':
-            if self.data_vencimento < hoje:
-                self.situacao = 'atrasado'
-                self.save()
-

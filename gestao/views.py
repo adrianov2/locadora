@@ -363,6 +363,16 @@ def locacao_excluir(request, pk):
     return redirect('locacoes_lista')
 
 @login_required
+def locacao_editar_inicio(request, pk):
+    locacao = get_object_or_404(Locacao, pk=pk)
+    if request.method == 'POST':
+        data_str = request.POST.get('data_inicio_real')
+        locacao.data_inicio_real = data_str or None
+        locacao.save()
+        messages.success(request, 'Data de início atualizada!')
+    return redirect('locacoes_lista')
+
+@login_required
 def pagamentos_lista(request):
     situacao = request.GET.get('situacao', '')
     pagamentos = Pagamento.objects.select_related('locacao__cliente', 'locacao__veiculo').all()

@@ -21,13 +21,48 @@
         <tr>
           <td><strong>{{ loc.cliente.nome }} {{ loc.cliente.sobrenome }}</strong></td>
           <td>{{ loc.veiculo.nome }} {{ loc.veiculo.modelo }}<br><small class="text-muted">{{ loc.veiculo.placa }}</small></td>
-          <td>{{ loc.data_retirada|date:"d/m/Y" }}<br><small class="text-muted">{{ loc.hora_retirada|time:"H:i" }}</small></td>
+          <td>
+  {{ loc.data_retirada|date:"d/m/Y" }}<br>
+  <small class="text-muted">{{ loc.hora_retirada|time:"H:i" }}</small><br>
+  <small class="text-info">
+    {% if loc.data_inicio_real %}
+      há {{ loc.data_inicio_real|timesince }} (desde {{ loc.data_inicio_real|date:"d/m/Y" }})
+    {% else %}
+      há {{ loc.data_retirada|timesince }}
+    {% endif %}
+  </small>
+  <button type="button" class="btn btn-sm btn-link p-0" data-bs-toggle="modal" data-bs-target="#modalInicio{{ loc.pk }}">
+    <i class="bi bi-pencil-square"></i> ajustar
+  </button>
+
+  <div class="modal fade" id="modalInicio{{ loc.pk }}" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <form method="post" action="/locacoes/{{ loc.pk }}/inicio/">
+          {% csrf_token %}
+          <div class="modal-header">
+            <h6 class="modal-title">Início real — {{ loc.cliente.nome }}</h6>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <label class="form-label small">Data em que o cliente pegou o carro de verdade</label>
+            <input type="date" name="data_inicio_real" class="form-control" value="{{ loc.data_inicio_real|date:'Y-m-d' }}">
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-sm btn-primary">Salvar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</td>
           <td><small class="text-muted">a cada {{ loc.periodicidade_dias }} dias</small></td>
           <td>R$ {{ loc.valor_combinado }}</td>
           <td><small>{{ loc.get_forma_pagamento_display }}</small></td>
           <td><span class="status-badge badge-{{ loc.status }}">{{ loc.get_status_display }}</span></td>
           <td class="d-flex gap-1">
             <a href="/locacoes/{{ loc.pk }}/" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+            <a href="/locacoes/{{ loc.pk }}/editar/" class="btn btn-sm btn-outline-warning" title="Editar locação"><i class="bi bi-pencil"></i></a>
             {% if loc.status == 'ativa' %}
             <form method="post" action="/locacoes/{{ loc.pk }}/renovar/" onsubmit="return confirm('Renovar ciclo de {{ loc.periodicidade_dias }} dias para {{ loc.cliente.nome }}?');">
               {% csrf_token %}
