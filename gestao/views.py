@@ -9,7 +9,12 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from decimal import Decimal
 from datetime import date, timedelta
-
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from datetime import date, timedelta
+from django.db.models import Sum
+from django.shortcuts import render
+import traceback
 from .models import Cliente, Veiculo, Locacao, Pagamento, Manutencao, Despesa, LogAcesso, Usuario
 from .forms import ClienteForm, VeiculoForm, LocacaoForm, PagamentoForm, ManutencaoForm,DespesaForm, LocacaoFinalizarForm
 
@@ -77,17 +82,6 @@ def login_view(request):
             messages.error(request, 'Usuário ou senha inválidos.')
     return render(request, 'gestao/login.html')
 
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-
-from datetime import date, timedelta
-from decimal import Decimal
-from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
-from django.shortcuts import render
-import json
-import traceback
-
 
 @login_required
 def dashboard(request):
@@ -102,10 +96,17 @@ def dashboard(request):
             situacao='pago'
         ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
 
-        gastos_mes = Manutencao.objects.filter(
+        gastos_manutencao_mes = Manutencao.objects.filter(
             data__month=mes_atual,
             data__year=ano_atual
         ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+
+        gastos_despesa_mes = Despesa.objects.filter(
+            data__month=mes_atual,
+            data__year=ano_atual
+        ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+
+        gastos_mes = gastos_manutencao_mes + gastos_despesa_mes
 
         lucro_mes = receita_mes - gastos_mes
 

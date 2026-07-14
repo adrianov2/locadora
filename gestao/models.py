@@ -234,3 +234,4 @@ class Despesa(models.Model):
             f'{self.get_tipo_display()} - '
             f'R$ {self.valor:.2f}'
         )
+    

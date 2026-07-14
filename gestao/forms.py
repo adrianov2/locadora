@@ -23,18 +23,21 @@ class LocacaoForm(forms.ModelForm):
         model = Locacao
         exclude = ['status', 'criado_em', 'criado_por', 'data_devolucao_real', 'hora_devolucao_real']
         widgets = {
-            'data_retirada': forms.DateInput(attrs={'type': 'date'}),
-            'hora_retirada': forms.TimeInput(attrs={'type': 'time'}),
-            'data_prevista_devolucao': forms.DateInput(attrs={'type': 'date'}),
-            'hora_prevista_devolucao': forms.TimeInput(attrs={'type': 'time'}),
-            'observacoes': forms.Textarea(attrs={'rows': 3}),
-        }
+        'data_retirada': forms.DateInput(format='%Y-m-d', attrs={'type': 'date'}),
+        'hora_retirada': forms.TimeInput(format='%H:%M', attrs={'type': 'time'}),
+        'data_prevista_devolucao': forms.DateInput(format='%Y-m-d', attrs={'type': 'date'}),
+        'hora_prevista_devolucao': forms.TimeInput(format='%H:%M', attrs={'type': 'time'}),
+        'observacoes': forms.Textarea(attrs={'rows': 3}),
+    }
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['veiculo'].queryset = Veiculo.objects.filter(status='disponivel', ativo=True)
-        self.fields['cliente'].queryset = Cliente.objects.filter(ativo=True)
-
+            super().__init__(*args, **kwargs)
+            veiculos_qs = Veiculo.objects.filter(status='disponivel', ativo=True)
+            if self.instance and self.instance.pk:
+                # Edição: inclui o veículo atual da locação, mesmo que esteja "alugado"
+                veiculos_qs = veiculos_qs | Veiculo.objects.filter(pk=self.instance.veiculo_id)
+            self.fields['veiculo'].queryset = veiculos_qs.distinct()
+            self.fields['cliente'].queryset = Cliente.objects.filter(ativo=True)
 
 class LocacaoFinalizarForm(forms.ModelForm):
     class Meta:
