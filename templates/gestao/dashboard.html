@@ -21,21 +21,21 @@
   <div class="col-6 col-lg-3">
     <div class="stat-card">
       <div class="stat-icon" style="background:#dbeafe">💰</div>
-      <div class="stat-value" style="color:#1e40af">R$ {{ receita_mes|floatformat:0 }}</div>
+      <div class="stat-value" style="color:#1e40af">R$ {{ receita_mes|floatformat:2 }}</div>
       <div class="stat-label">Receita do Mês</div>
     </div>
   </div>
   <div class="col-6 col-lg-3">
     <div class="stat-card">
       <div class="stat-icon" style="background:#fef3c7">🔧</div>
-      <div class="stat-value" style="color:#92400e">R$ {{ gastos_mes|floatformat:0 }}</div>
+      <div class="stat-value" style="color:#92400e">R$ {{ gastos_mes|floatformat:2 }}</div>
       <div class="stat-label">Gastos Manutenção</div>
     </div>
   </div>
   <div class="col-6 col-lg-3">
     <div class="stat-card">
       <div class="stat-icon" style="background:#d1fae5">📈</div>
-      <div class="stat-value" style="color:#065f46">R$ {{ lucro_mes|floatformat:0 }}</div>
+      <div class="stat-value" style="color:#065f46">R$ {{ lucro_mes|floatformat:2 }}</div>
       <div class="stat-label">Lucro Líquido</div>
     </div>
   </div>
