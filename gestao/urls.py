@@ -58,4 +58,10 @@ urlpatterns = [
     # PWA
     path('manifest.json', views.manifest_json, name='manifest_json'),
     path('sw.js', views.service_worker, name='service_worker'),
+
+    # Peças
+    path('pecas/', views.pecas_lista, name='pecas_lista'),
+    path('pecas/nova/', views.pecas_form, name='peca_nova'),
+    path('pecas/<int:pk>/editar/', views.pecas_form, name='peca_editar'),
+    path('pecas/<int:pk>/excluir/', views.peca_excluir, name='peca_excluir'),
 ]

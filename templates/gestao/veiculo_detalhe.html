@@ -4,6 +4,7 @@
 {% block topbar_actions %}
 <a href="/veiculos/{{ veiculo.pk }}/editar/" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>Editar</a>
 <a href="/manutencoes/nova/?veiculo={{ veiculo.pk }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-tools me-1"></i>Manutenção</a>
+<a href="/despesas/nova/?veiculo={{ veiculo.pk }}" class="btn btn-sm btn-outline-danger"><i class="bi bi-cash-coin me-1"></i>Despesa</a>
 {% endblock %}
 {% block content %}
 <div class="row g-3">
@@ -19,7 +20,19 @@
         </table>
       </div>
     </div>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <p class="section-title" style="margin-top:0">💰 Total Gasto</p>
+        <table class="table table-sm mb-0">
+          <tr><td class="text-muted small">Manutenções</td><td class="text-end">R$ {{ total_manutencao|floatformat:2 }}</td></tr>
+          <tr><td class="text-muted small">Despesas</td><td class="text-end">R$ {{ total_despesa|floatformat:2 }}</td></tr>
+          <tr class="border-top"><td><strong>Total</strong></td><td class="text-end"><strong>R$ {{ total_gasto|floatformat:2 }}</strong></td></tr>
+        </table>
+      </div>
+    </div>
   </div>
+
   <div class="col-md-8">
     <div class="card mb-3">
       <div class="card-header">Histórico de Locações</div>
@@ -41,7 +54,8 @@
         </table>
       </div>
     </div>
-    <div class="card">
+
+    <div class="card mb-3">
       <div class="card-header">Histórico de Manutenções</div>
       <div class="table-responsive">
         <table class="table table-custom mb-0">
@@ -55,6 +69,26 @@
               <td>{{ m.oficina }}</td>
             </tr>
             {% empty %}<tr><td colspan="4" class="text-center text-muted py-3">Sem manutenções</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Histórico de Despesas</div>
+      <div class="table-responsive">
+        <table class="table table-custom mb-0">
+          <thead><tr><th>Tipo</th><th>Data</th><th>Valor</th><th>Descrição</th></tr></thead>
+          <tbody>
+            {% for d in despesas %}
+            <tr>
+              <td>{{ d.get_tipo_display }}</td>
+              <td>{{ d.data|date:"d/m/Y" }}</td>
+              <td>R$ {{ d.valor }}</td>
+              <td>{{ d.descricao|truncatechars:40 }}</td>
+            </tr>
+            {% empty %}<tr><td colspan="4" class="text-center text-muted py-3">Sem despesas</td></tr>
             {% endfor %}
           </tbody>
         </table>

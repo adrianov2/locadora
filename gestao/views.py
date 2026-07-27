@@ -5,18 +5,14 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Sum, Count, Q
 from django.http import JsonResponse, HttpResponse
-from django.views.decorators.csrf import csrf_exempt
 import json
 from decimal import Decimal
 from datetime import date, timedelta
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-from datetime import date, timedelta
-from django.db.models import Sum
-from django.shortcuts import render
 import traceback
 from .models import Cliente, Veiculo, Locacao, Pagamento, Manutencao, Despesa, LogAcesso, Usuario
-from .forms import ClienteForm, VeiculoForm, LocacaoForm, PagamentoForm, ManutencaoForm,DespesaForm, LocacaoFinalizarForm
+from .forms import ClienteForm, VeiculoForm, LocacaoForm, PagamentoForm, ManutencaoForm, DespesaForm, LocacaoFinalizarForm
+from .models import Cliente, Veiculo, Locacao, Pagamento, Manutencao, Despesa, LogAcesso, Usuario, Peca
+from .forms import ClienteForm, VeiculoForm, LocacaoForm, PagamentoForm, ManutencaoForm, DespesaForm, LocacaoFinalizarForm, PecaForm
 
 
 def get_alertas():
@@ -35,7 +31,6 @@ def get_alertas():
         p.save()
         alertas.append({'tipo': 'danger', 'mensagem': f'Pagamento ATRASADO: R$ {p.valor} - {p.locacao.cliente.nome}', 'categoria': 'pagamento'})
 
-   
     # Manutenções próximas (30 dias)
     manutencoes = Manutencao.objects.all().order_by('-data')
     revisoes_check = {}
@@ -87,8 +82,17 @@ def login_view(request):
 def dashboard(request):
     try:
         hoje = date.today()
-        mes_atual = hoje.month
-        ano_atual = hoje.year
+
+        mes_param = request.GET.get('mes')
+        if mes_param:
+            try:
+                ano_atual, mes_atual = map(int, mes_param.split('-'))
+            except (ValueError, AttributeError):
+                mes_atual, ano_atual = hoje.month, hoje.year
+        else:
+            mes_atual, ano_atual = hoje.month, hoje.year
+
+        mes_selecionado = f"{ano_atual:04d}-{mes_atual:02d}"
 
         receita_mes = Pagamento.objects.filter(
             data_pagamento__month=mes_atual,
@@ -107,7 +111,6 @@ def dashboard(request):
         ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
 
         gastos_mes = gastos_manutencao_mes + gastos_despesa_mes
-
         lucro_mes = receita_mes - gastos_mes
 
         pag_hoje = Pagamento.objects.filter(
@@ -130,7 +133,6 @@ def dashboard(request):
 
         for i in range(5, -1, -1):
             d = hoje - timedelta(days=30 * i)
-
             meses_labels.append(d.strftime('%b/%y'))
 
             r = Pagamento.objects.filter(
@@ -139,13 +141,16 @@ def dashboard(request):
                 situacao='pago'
             ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
 
-            g = Manutencao.objects.filter(
-                data__month=d.month,
-                data__year=d.year
+            g_manutencao = Manutencao.objects.filter(
+                data__month=d.month, data__year=d.year
+            ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
+
+            g_despesa = Despesa.objects.filter(
+                data__month=d.month, data__year=d.year
             ).aggregate(total=Sum('valor'))['total'] or Decimal('0')
 
             receitas_data.append(float(r))
-            gastos_data.append(float(g))
+            gastos_data.append(float(g_manutencao + g_despesa))
 
         try:
             locacoes_recentes = (
@@ -158,9 +163,9 @@ def dashboard(request):
             locacoes_recentes = []
 
         try:
-           alertas = get_alertas()
+            alertas = get_alertas()
         except Exception:
-           alertas = []
+            alertas = []
 
         ctx = {
             'receita_mes': receita_mes,
@@ -176,6 +181,7 @@ def dashboard(request):
             'meses_labels': json.dumps(meses_labels),
             'receitas_data': json.dumps(receitas_data),
             'gastos_data': json.dumps(gastos_data),
+            'mes_selecionado': mes_selecionado,
         }
 
         return render(request, 'gestao/dashboard.html', ctx)
@@ -184,6 +190,7 @@ def dashboard(request):
         traceback.print_exc()
         raise
 
+
 @login_required
 def clientes_lista(request):
     q = request.GET.get('q', '')
@@ -191,6 +198,7 @@ def clientes_lista(request):
     if q:
         clientes = clientes.filter(Q(nome__icontains=q) | Q(sobrenome__icontains=q) | Q(cpf__icontains=q))
     return render(request, 'gestao/clientes_lista.html', {'clientes': clientes, 'q': q})
+
 
 @login_required
 def cliente_form(request, pk=None):
@@ -246,7 +254,21 @@ def veiculo_detalhe(request, pk):
     veiculo = get_object_or_404(Veiculo, pk=pk)
     locacoes = veiculo.locacoes.select_related('cliente').order_by('-data_retirada')
     manutencoes = veiculo.manutencoes.order_by('-data')
-    return render(request, 'gestao/veiculo_detalhe.html', {'veiculo': veiculo, 'locacoes': locacoes, 'manutencoes': manutencoes})
+    despesas = veiculo.despesas.order_by('-data')
+
+    total_manutencao = manutencoes.aggregate(total=Sum('valor'))['total'] or Decimal('0')
+    total_despesa = despesas.aggregate(total=Sum('valor'))['total'] or Decimal('0')
+    total_gasto = total_manutencao + total_despesa
+
+    return render(request, 'gestao/veiculo_detalhe.html', {
+        'veiculo': veiculo,
+        'locacoes': locacoes,
+        'manutencoes': manutencoes,
+        'despesas': despesas,
+        'total_manutencao': total_manutencao,
+        'total_despesa': total_despesa,
+        'total_gasto': total_gasto,
+    })
 
 
 @login_required
@@ -258,6 +280,7 @@ def veiculo_excluir(request, pk):
         messages.success(request, 'Veículo removido.')
         return redirect('veiculos_lista')
     return render(request, 'gestao/confirmar_exclusao.html', {'objeto': veiculo, 'tipo': 'veiculo'})
+
 
 @login_required
 def locacao_renovar(request, pk):
@@ -288,6 +311,7 @@ def locacao_renovar(request, pk):
 
     return redirect('locacoes_lista')
 
+
 @login_required
 def locacoes_lista(request):
     status = request.GET.get('status', '')
@@ -305,12 +329,12 @@ def locacao_form(request, pk=None):
         obj = form.save(commit=False)
         obj.criado_por = request.user
         obj.save()
-        
+
         # Atualiza status do veículo
         obj.veiculo.status = 'alugado'
         obj.veiculo.save()
-        
-      # Cria primeiro ciclo de pagamento (a cada X dias)
+
+        # Cria primeiro ciclo de pagamento (a cada X dias)
         if not pk:
             Pagamento.objects.create(
                 locacao=obj,
@@ -330,6 +354,7 @@ def locacao_form(request, pk=None):
         messages.success(request, 'Locação registrada com sucesso!')
         return redirect('locacoes_lista')
     return render(request, 'gestao/locacao_form.html', {'form': form, 'locacao': locacao})
+
 
 @login_required
 def locacao_detalhe(request, pk):
@@ -352,6 +377,7 @@ def locacao_finalizar(request, pk):
         return redirect('locacoes_lista')
     return render(request, 'gestao/locacao_finalizar.html', {'form': form, 'locacao': locacao})
 
+
 @login_required
 def locacao_excluir(request, pk):
     locacao = get_object_or_404(Locacao, pk=pk)
@@ -363,6 +389,7 @@ def locacao_excluir(request, pk):
         messages.success(request, 'Locação excluída (junto com seus pagamentos).')
     return redirect('locacoes_lista')
 
+
 @login_required
 def locacao_editar_inicio(request, pk):
     locacao = get_object_or_404(Locacao, pk=pk)
@@ -372,6 +399,7 @@ def locacao_editar_inicio(request, pk):
         locacao.save()
         messages.success(request, 'Data de início atualizada!')
     return redirect('locacoes_lista')
+
 
 @login_required
 def pagamentos_lista(request):
@@ -385,7 +413,6 @@ def pagamentos_lista(request):
     return render(request, 'gestao/pagamentos_lista.html', {'pagamentos': pagamentos, 'situacao': situacao})
 
 
-
 @login_required
 def pagamento_form(request):
     form = PagamentoForm(request.POST or None)
@@ -394,6 +421,7 @@ def pagamento_form(request):
         messages.success(request, 'Pagamento registrado!')
         return redirect('pagamentos_lista')
     return render(request, 'gestao/pagamento_form.html', {'form': form})
+
 
 @login_required
 def pagamento_pagar(request, pk):
@@ -418,6 +446,8 @@ def pagamento_pagar(request, pk):
             messages.success(request, 'Pagamento marcado como pago!')
 
     return redirect('pagamentos_lista')
+
+
 @login_required
 def pagamento_excluir(request, pk):
     pagamento = get_object_or_404(Pagamento, pk=pk)
@@ -425,6 +455,7 @@ def pagamento_excluir(request, pk):
         pagamento.delete()
         messages.success(request, 'Pagamento removido.')
     return redirect('pagamentos_lista')
+
 
 @login_required
 def manutencoes_lista(request):
@@ -446,104 +477,52 @@ def manutencao_form(request, pk=None):
         return redirect('manutencoes_lista')
     return render(request, 'gestao/manutencao_form.html', {'form': form, 'manutencao': manutencao})
 
+
 @login_required
 def despesas_lista(request):
-
     veiculo_id = request.GET.get('veiculo', '')
 
-    despesas = Despesa.objects.select_related(
-        'veiculo'
-    ).order_by('-data')
+    despesas = Despesa.objects.select_related('veiculo').order_by('-data')
 
     if veiculo_id:
-        despesas = despesas.filter(
-            veiculo_id=veiculo_id
-        )
+        despesas = despesas.filter(veiculo_id=veiculo_id)
 
-    total = despesas.aggregate(
-        total=Sum('valor')
-    )['total'] or Decimal('0')
+    total = despesas.aggregate(total=Sum('valor'))['total'] or Decimal('0')
 
-    veiculos = Veiculo.objects.filter(
-        ativo=True
-    )
+    veiculos = Veiculo.objects.filter(ativo=True)
 
-    return render(
-        request,
-        'gestao/despesas_lista.html',
-        {
-            'despesas': despesas,
-            'veiculos': veiculos,
-            'veiculo_id': veiculo_id,
-            'total': total,
-        }
-    )
+    return render(request, 'gestao/despesas_lista.html', {
+        'despesas': despesas,
+        'veiculos': veiculos,
+        'veiculo_id': veiculo_id,
+        'total': total,
+    })
 
 
 @login_required
 def despesa_form(request, pk=None):
-
-    despesa = get_object_or_404(
-        Despesa,
-        pk=pk
-    ) if pk else None
-
-    form = DespesaForm(
-        request.POST or None,
-        instance=despesa
-    )
+    despesa = get_object_or_404(Despesa, pk=pk) if pk else None
+    form = DespesaForm(request.POST or None, instance=despesa)
 
     if form.is_valid():
-
         form.save()
+        messages.success(request, 'Despesa salva com sucesso!')
+        return redirect('despesas_lista')
 
-        messages.success(
-            request,
-            'Despesa salva com sucesso!'
-        )
-
-        return redirect(
-            'despesas_lista'
-        )
-
-    return render(
-        request,
-        'gestao/despesa_form.html',
-        {
-            'form': form,
-            'despesa': despesa
-        }
-    )
+    return render(request, 'gestao/despesa_form.html', {'form': form, 'despesa': despesa})
 
 
 @login_required
 def despesa_excluir(request, pk):
-
-    despesa = get_object_or_404(
-        Despesa,
-        pk=pk
-    )
+    despesa = get_object_or_404(Despesa, pk=pk)
 
     if request.method == 'POST':
-
         despesa.delete()
+        messages.success(request, 'Despesa excluída com sucesso.')
+        return redirect('despesas_lista')
 
-        messages.success(
-            request,
-            'Despesa excluída com sucesso.'
-        )
+    return render(request, 'gestao/despesa_excluir.html', {'despesa': despesa})
 
-        return redirect(
-            'despesas_lista'
-        )
-
-    return render(
-        request,
-        'gestao/despesa_excluir.html',
-        {
-            'despesa': despesa
-        }
-    )
 
 @login_required
 def financeiro(request):
@@ -557,18 +536,26 @@ def financeiro(request):
         situacao='pago'
     ).select_related('locacao__cliente')
 
-    gastos = Manutencao.objects.filter(
+    gastos_manutencao = Manutencao.objects.filter(
+        data__month=mes,
+        data__year=ano
+    ).select_related('veiculo')
+
+    gastos_despesa = Despesa.objects.filter(
         data__month=mes,
         data__year=ano
     ).select_related('veiculo')
 
     total_receitas = receitas.aggregate(t=Sum('valor'))['t'] or Decimal('0')
-    total_gastos = gastos.aggregate(t=Sum('valor'))['t'] or Decimal('0')
+    total_manutencao = gastos_manutencao.aggregate(t=Sum('valor'))['t'] or Decimal('0')
+    total_despesa = gastos_despesa.aggregate(t=Sum('valor'))['t'] or Decimal('0')
+    total_gastos = total_manutencao + total_despesa
     lucro = total_receitas - total_gastos
 
     ctx = {
         'receitas': receitas,
-        'gastos': gastos,
+        'gastos_manutencao': gastos_manutencao,
+        'gastos_despesa': gastos_despesa,
         'total_receitas': total_receitas,
         'total_gastos': total_gastos,
         'lucro': lucro,
@@ -580,7 +567,14 @@ def financeiro(request):
 
 @login_required
 def relatorios(request):
-    return render(request, 'gestao/relatorios.html')
+    opcoes = [
+        {'tipo': 'clientes', 'label': 'Clientes', 'icon': '👥', 'desc': 'Lista completa de clientes cadastrados'},
+        {'tipo': 'veiculos', 'label': 'Veículos', 'icon': '🚗', 'desc': 'Frota completa com status atual'},
+        {'tipo': 'financeiro', 'label': 'Financeiro', 'icon': '💰', 'desc': 'Extrato de receitas e pagamentos'},
+        {'tipo': 'manutencoes', 'label': 'Manutenções', 'icon': '🔧', 'desc': 'Histórico de manutenções e gastos'},
+        {'tipo': 'pagamentos', 'label': 'Pagamentos', 'icon': '📋', 'desc': 'Status de todos os pagamentos'},
+    ]
+    return render(request, 'gestao/relatorios.html', {'relatorios_opcoes': opcoes})
 
 
 @login_required
@@ -601,21 +595,36 @@ def relatorio_pdf(request, tipo):
     elements.append(Spacer(1, 12))
 
     if tipo == 'clientes':
-        data = [['Nome', 'CPF', 'Telefone', 'Cidade']]
+        data = [['Nome', 'Sobrenome', 'CPF', 'Endereço']]
         for c in Cliente.objects.filter(ativo=True):
-            data.append([c.nome, c.cpf, c.telefone, c.cidade])
+            data.append([c.nome, c.sobrenome, c.cpf, c.endereco])
+
     elif tipo == 'veiculos':
-        data = [['Placa', 'Marca/Modelo', 'Ano', 'Status']]
+        data = [['Placa', 'Nome/Modelo', 'Cor', 'Status']]
         for v in Veiculo.objects.filter(ativo=True):
-            data.append([v.placa, f'{v.marca} {v.modelo}', str(v.ano), v.get_status_display()])
+            data.append([v.placa, f'{v.nome} {v.modelo}', v.cor, v.get_status_display()])
+
     elif tipo == 'pagamentos':
         data = [['Cliente', 'Valor', 'Vencimento', 'Situação']]
         for p in Pagamento.objects.select_related('locacao__cliente').all()[:100]:
             data.append([p.locacao.cliente.nome, f'R$ {p.valor}', str(p.data_vencimento), p.get_situacao_display()])
+
     elif tipo == 'manutencoes':
         data = [['Veículo', 'Tipo', 'Data', 'Valor']]
         for m in Manutencao.objects.select_related('veiculo').all()[:100]:
             data.append([str(m.veiculo), m.get_tipo_display(), str(m.data), f'R$ {m.valor}'])
+
+    elif tipo == 'financeiro':
+        data = [['Cliente', 'Veículo', 'Valor', 'Vencimento', 'Situação']]
+        for p in Pagamento.objects.select_related('locacao__cliente', 'locacao__veiculo').all()[:100]:
+            data.append([
+                p.locacao.cliente.nome,
+                str(p.locacao.veiculo),
+                f'R$ {p.valor}',
+                str(p.data_vencimento),
+                p.get_situacao_display(),
+            ])
+
     else:
         data = [['Sem dados']]
 
@@ -637,6 +646,33 @@ def relatorio_pdf(request, tipo):
     response['Content-Disposition'] = f'attachment; filename="relatorio_{tipo}.pdf"'
     return response
 
+@login_required
+def pecas_lista(request):
+    q = request.GET.get('q', '')
+    pecas = Peca.objects.all()
+    if q:
+        pecas = pecas.filter(nome__icontains=q)
+    return render(request, 'gestao/pecas_lista.html', {'pecas': pecas, 'q': q})
+
+
+@login_required
+def pecas_form(request, pk=None):
+    peca = get_object_or_404(Peca, pk=pk) if pk else None
+    form = PecaForm(request.POST or None, instance=peca)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Peça salva com sucesso!')
+        return redirect('pecas_lista')
+    return render(request, 'gestao/pecas_form.html', {'form': form, 'peca': peca})
+
+
+@login_required
+def peca_excluir(request, pk):
+    peca = get_object_or_404(Peca, pk=pk)
+    if request.method == 'POST':
+        peca.delete()
+        messages.success(request, 'Peça removida.')
+    return redirect('pecas_lista')
 
 @login_required
 def relatorio_excel(request, tipo):
@@ -652,20 +688,43 @@ def relatorio_excel(request, tipo):
     header_font = Font(color='FFFFFF', bold=True)
 
     if tipo == 'clientes':
-        headers = ['Nome', 'CPF', 'Telefone', 'WhatsApp', 'Cidade', 'Estado', 'CNH', 'Validade CNH']
+        headers = ['Nome', 'Sobrenome', 'CPF', 'Endereço']
         ws.append(headers)
         for c in Cliente.objects.filter(ativo=True):
-            ws.append([c.nome, c.cpf, c.telefone, c.whatsapp, c.cidade, c.estado, c.cnh, str(c.validade_cnh or '')])
+            ws.append([c.nome, c.sobrenome, c.cpf, c.endereco])
+
     elif tipo == 'veiculos':
-        headers = ['Placa', 'Marca', 'Modelo', 'Ano', 'Cor', 'KM', 'Status']
+        headers = ['Placa', 'Nome', 'Modelo', 'Cor', 'Status']
         ws.append(headers)
         for v in Veiculo.objects.filter(ativo=True):
-            ws.append([v.placa, v.marca, v.modelo, v.ano, v.cor, float(v.quilometragem), v.get_status_display()])
+            ws.append([v.placa, v.nome, v.modelo, v.cor, v.get_status_display()])
+
     elif tipo == 'financeiro':
         headers = ['Cliente', 'Veículo', 'Valor', 'Vencimento', 'Pagamento', 'Situação']
         ws.append(headers)
         for p in Pagamento.objects.select_related('locacao__cliente', 'locacao__veiculo').all():
-            ws.append([p.locacao.cliente.nome, str(p.locacao.veiculo), float(p.valor), str(p.data_vencimento), str(p.data_pagamento or ''), p.get_situacao_display()])
+            ws.append([
+                p.locacao.cliente.nome,
+                str(p.locacao.veiculo),
+                float(p.valor),
+                str(p.data_vencimento),
+                str(p.data_pagamento or ''),
+                p.get_situacao_display(),
+            ])
+
+    elif tipo == 'pagamentos':
+        headers = ['Cliente', 'Veículo', 'Valor', 'Vencimento', 'Pagamento', 'Situação']
+        ws.append(headers)
+        for p in Pagamento.objects.select_related('locacao__cliente', 'locacao__veiculo').all():
+            ws.append([
+                p.locacao.cliente.nome,
+                str(p.locacao.veiculo),
+                float(p.valor),
+                str(p.data_vencimento),
+                str(p.data_pagamento or ''),
+                p.get_situacao_display(),
+            ])
+
     elif tipo == 'manutencoes':
         headers = ['Veículo', 'Tipo', 'Descrição', 'Data', 'Valor', 'Oficina']
         ws.append(headers)
@@ -715,21 +774,5 @@ self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c
 self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
 """
     return HttpResponse(sw_content, content_type='application/javascript')
-    return HttpResponse(sw_content, content_type='application/javascript')
 
-
-# Patch: add context to relatorios view
-from django.apps import apps
-
-def _relatorios_view_patch(request):
-    opcoes = [
-        {'tipo': 'clientes', 'label': 'Clientes', 'icon': '👥', 'desc': 'Lista completa de clientes cadastrados'},
-        {'tipo': 'veiculos', 'label': 'Veículos', 'icon': '🚗', 'desc': 'Frota completa com status atual'},
-        {'tipo': 'financeiro', 'label': 'Financeiro', 'icon': '💰', 'desc': 'Extrato de receitas e pagamentos'},
-        {'tipo': 'manutencoes', 'label': 'Manutenções', 'icon': '🔧', 'desc': 'Histórico de manutenções e gastos'},
-        {'tipo': 'pagamentos', 'label': 'Pagamentos', 'icon': '📋', 'desc': 'Status de todos os pagamentos'},
-    ]
-    return render(request, 'gestao/relatorios.html', {'relatorios_opcoes': opcoes})
-
-# Replace the original relatorios view
-relatorios = login_required(_relatorios_view_patch)
+    

@@ -1,0 +1,42 @@
+{% extends 'gestao/base.html' %}
+{% block title %}Estoque de Peças — LM Locadora{% endblock %}
+{% block page_title %}Estoque de Peças{% endblock %}
+{% block topbar_actions %}
+<a href="/pecas/nova/" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>Nova Peça</a>
+{% endblock %}
+{% block content %}
+<form method="get" class="mb-3">
+  <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Buscar peça pelo nome..." style="max-width:320px">
+</form>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-custom mb-0">
+      <thead><tr><th>Peça</th><th>Quantidade</th><th>Ações</th></tr></thead>
+      <tbody>
+        {% for p in pecas %}
+        <tr>
+          <td><strong>{{ p.nome }}</strong></td>
+          <td>
+            {% if p.quantidade <= 0 %}
+              <span class="status-badge badge-cancelada">Sem estoque</span>
+            {% else %}
+              {{ p.quantidade }} un.
+            {% endif %}
+          </td>
+          <td class="d-flex gap-1">
+            <a href="/pecas/{{ p.pk }}/editar/" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
+            <form method="post" action="/pecas/{{ p.pk }}/excluir/" style="display:inline" onsubmit="return confirm('Remover a peça {{ p.nome }} do estoque?');">
+              {% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger" title="Excluir"><i class="bi bi-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="text-center text-muted py-4">Nenhuma peça cadastrada.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

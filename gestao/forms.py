@@ -1,5 +1,5 @@
 from django import forms
-from .models import Cliente, Veiculo, Locacao, Pagamento, Manutencao,Despesa
+from .models import Cliente, Veiculo, Locacao, Pagamento, Manutencao, Despesa, Peca
 
 
 class ClienteForm(forms.ModelForm):
@@ -23,29 +23,30 @@ class LocacaoForm(forms.ModelForm):
         model = Locacao
         exclude = ['status', 'criado_em', 'criado_por', 'data_devolucao_real', 'hora_devolucao_real']
         widgets = {
-        'data_retirada': forms.DateInput(format='%Y-m-d', attrs={'type': 'date'}),
-        'hora_retirada': forms.TimeInput(format='%H:%M', attrs={'type': 'time'}),
-        'data_prevista_devolucao': forms.DateInput(format='%Y-m-d', attrs={'type': 'date'}),
-        'hora_prevista_devolucao': forms.TimeInput(format='%H:%M', attrs={'type': 'time'}),
-        'observacoes': forms.Textarea(attrs={'rows': 3}),
-    }
+            'data_retirada': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'hora_retirada': forms.TimeInput(format='%H:%M', attrs={'type': 'time'}),
+            'data_prevista_devolucao': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'hora_prevista_devolucao': forms.TimeInput(format='%H:%M', attrs={'type': 'time'}),
+            'observacoes': forms.Textarea(attrs={'rows': 3}),
+        }
 
     def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            veiculos_qs = Veiculo.objects.filter(status='disponivel', ativo=True)
-            if self.instance and self.instance.pk:
-                # Edição: inclui o veículo atual da locação, mesmo que esteja "alugado"
-                veiculos_qs = veiculos_qs | Veiculo.objects.filter(pk=self.instance.veiculo_id)
-            self.fields['veiculo'].queryset = veiculos_qs.distinct()
-            self.fields['cliente'].queryset = Cliente.objects.filter(ativo=True)
+        super().__init__(*args, **kwargs)
+        veiculos_qs = Veiculo.objects.filter(status='disponivel', ativo=True)
+        if self.instance and self.instance.pk:
+            # Edição: inclui o veículo atual da locação, mesmo que esteja "alugado"
+            veiculos_qs = veiculos_qs | Veiculo.objects.filter(pk=self.instance.veiculo_id)
+        self.fields['veiculo'].queryset = veiculos_qs.distinct()
+        self.fields['cliente'].queryset = Cliente.objects.filter(ativo=True)
+
 
 class LocacaoFinalizarForm(forms.ModelForm):
     class Meta:
         model = Locacao
         fields = ['data_devolucao_real', 'hora_devolucao_real', 'observacoes']
         widgets = {
-            'data_devolucao_real': forms.DateInput(attrs={'type': 'date'}),
-            'hora_devolucao_real': forms.TimeInput(attrs={'type': 'time'}),
+            'data_devolucao_real': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'hora_devolucao_real': forms.TimeInput(format='%H:%M', attrs={'type': 'time'}),
             'observacoes': forms.Textarea(attrs={'rows': 3}),
         }
 
@@ -55,7 +56,7 @@ class PagamentoForm(forms.ModelForm):
         model = Pagamento
         exclude = ['situacao', 'criado_em', 'data_pagamento']
         widgets = {
-            'data_vencimento': forms.DateInput(attrs={'type': 'date'}),
+            'data_vencimento': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
             'observacoes': forms.Textarea(attrs={'rows': 3}),
         }
 
@@ -65,25 +66,33 @@ class ManutencaoForm(forms.ModelForm):
         model = Manutencao
         exclude = ['criado_em']
         widgets = {
-            'data': forms.DateInput(attrs={'type': 'date'}),
-            'proxima_revisao': forms.DateInput(attrs={'type': 'date'}),
-            'proxima_troca_oleo': forms.DateInput(attrs={'type': 'date'}),
-            'troca_pneus': forms.DateInput(attrs={'type': 'date'}),
-            'vencimento_seguro': forms.DateInput(attrs={'type': 'date'}),
-            'vencimento_licenciamento': forms.DateInput(attrs={'type': 'date'}),
-            'vencimento_ipva': forms.DateInput(attrs={'type': 'date'}),
+            'data': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'proxima_revisao': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'proxima_troca_oleo': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'troca_pneus': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'vencimento_seguro': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'vencimento_licenciamento': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'vencimento_ipva': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
             'descricao': forms.Textarea(attrs={'rows': 3}),
         }
+
+
 class DespesaForm(forms.ModelForm):
     class Meta:
         model = Despesa
         exclude = ['criado_em']
-
         widgets = {
-            'data': forms.DateInput(attrs={'type': 'date'}),
+            'data': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
             'descricao': forms.Textarea(attrs={'rows': 3}),
             'observacoes': forms.Textarea(attrs={'rows': 3}),
         }
+
+
+class PecaForm(forms.ModelForm):
+    class Meta:
+        model = Peca
+        exclude = ['criado_em']
+
 
 def add_bootstrap_classes(form):
     for field_name, field in form.fields.items():
@@ -99,7 +108,7 @@ def add_bootstrap_classes(form):
 # Monkey-patch all forms to add bootstrap classes
 _original_init_methods = {}
 
-for form_cls in [ClienteForm, VeiculoForm, LocacaoForm, LocacaoFinalizarForm, PagamentoForm, ManutencaoForm,DespesaForm,]:
+for form_cls in [ClienteForm, VeiculoForm, LocacaoForm, LocacaoFinalizarForm, PagamentoForm, ManutencaoForm, DespesaForm, PecaForm]:
     original_init = form_cls.__init__
 
     def make_init(orig):
@@ -109,3 +118,4 @@ for form_cls in [ClienteForm, VeiculoForm, LocacaoForm, LocacaoFinalizarForm, Pa
         return new_init
 
     form_cls.__init__ = make_init(original_init)
+    

@@ -41,18 +41,7 @@ class Cliente(models.Model):
     def __str__(self):
         return f'{self.nome} {self.sobrenome}'.strip()
 
-    @property
-    def cnh_vencida(self):
-        if self.validade_cnh:
-            return self.validade_cnh < timezone.now().date()
-        return False
 
-    @property
-    def cnh_vencendo(self):
-        if self.validade_cnh:
-            dias = (self.validade_cnh - timezone.now().date()).days
-            return 0 <= dias <= 30
-        return False
 
 class Veiculo(models.Model):
     STATUS_CHOICES = [
@@ -74,6 +63,19 @@ class Veiculo(models.Model):
 
     def __str__(self):
         return f'{self.nome} {self.modelo} - {self.placa}'
+
+class Peca(models.Model):
+    nome = models.CharField(max_length=150)
+    quantidade = models.IntegerField(default=0)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['nome']
+        verbose_name = 'Peça'
+        verbose_name_plural = 'Peças'
+
+    def __str__(self):
+        return f'{self.nome} ({self.quantidade} un.)'
 
 class Manutencao(models.Model):
     TIPO_CHOICES = [
