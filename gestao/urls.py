@@ -30,12 +30,14 @@ urlpatterns = [
     path('locacoes/<int:pk>/renovar/', views.locacao_renovar, name='locacao_renovar'),
     path('locacoes/<int:pk>/excluir/', views.locacao_excluir, name='locacao_excluir'),
     path('locacoes/<int:pk>/inicio/', views.locacao_editar_inicio, name='locacao_editar_inicio'),
-        
+
     # Pagamentos
     path('pagamentos/', views.pagamentos_lista, name='pagamentos_lista'),
     path('pagamentos/novo/', views.pagamento_form, name='pagamento_novo'),
+    path('pagamentos/<int:pk>/editar/', views.pagamento_editar, name='pagamento_editar'),
     path('pagamentos/<int:pk>/pagar/', views.pagamento_pagar, name='pagamento_pagar'),
     path('pagamentos/<int:pk>/excluir/', views.pagamento_excluir, name='pagamento_excluir'),
+
     # Manutenções
     path('manutencoes/', views.manutencoes_lista, name='manutencoes_lista'),
     path('manutencoes/nova/', views.manutencao_form, name='manutencao_nova'),
@@ -49,19 +51,19 @@ urlpatterns = [
     # Financeiro
     path('financeiro/', views.financeiro, name='financeiro'),
 
-  # Despesas
+    # Despesas
     path('despesas/', views.despesas_lista, name='despesas_lista'),
     path('despesas/nova/', views.despesa_form, name='despesa_nova'),
     path('despesas/<int:pk>/editar/', views.despesa_form, name='despesa_editar'),
     path('despesas/<int:pk>/excluir/', views.despesa_excluir, name='despesa_excluir'),
-    
-    # PWA
-    path('manifest.json', views.manifest_json, name='manifest_json'),
-    path('sw.js', views.service_worker, name='service_worker'),
 
     # Peças
     path('pecas/', views.pecas_lista, name='pecas_lista'),
     path('pecas/nova/', views.pecas_form, name='peca_nova'),
     path('pecas/<int:pk>/editar/', views.pecas_form, name='peca_editar'),
     path('pecas/<int:pk>/excluir/', views.peca_excluir, name='peca_excluir'),
+
+    # PWA
+    path('manifest.json', views.manifest_json, name='manifest_json'),
+    path('sw.js', views.service_worker, name='service_worker'),
 ]

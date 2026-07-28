@@ -9,10 +9,11 @@ import json
 from decimal import Decimal
 from datetime import date, timedelta
 import traceback
-from .models import Cliente, Veiculo, Locacao, Pagamento, Manutencao, Despesa, LogAcesso, Usuario
-from .forms import ClienteForm, VeiculoForm, LocacaoForm, PagamentoForm, ManutencaoForm, DespesaForm, LocacaoFinalizarForm
 from .models import Cliente, Veiculo, Locacao, Pagamento, Manutencao, Despesa, LogAcesso, Usuario, Peca
-from .forms import ClienteForm, VeiculoForm, LocacaoForm, PagamentoForm, ManutencaoForm, DespesaForm, LocacaoFinalizarForm, PecaForm
+from .forms import (
+    ClienteForm, VeiculoForm, LocacaoForm, PagamentoForm, PagamentoEditForm,
+    ManutencaoForm, DespesaForm, LocacaoFinalizarForm, PecaForm,
+)
 
 
 def get_alertas():
@@ -424,6 +425,17 @@ def pagamento_form(request):
 
 
 @login_required
+def pagamento_editar(request, pk):
+    pagamento = get_object_or_404(Pagamento, pk=pk)
+    form = PagamentoEditForm(request.POST or None, instance=pagamento)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Pagamento atualizado com sucesso!')
+        return redirect('pagamentos_lista')
+    return render(request, 'gestao/pagamento_editar.html', {'form': form, 'pagamento': pagamento})
+
+
+@login_required
 def pagamento_pagar(request, pk):
     pagamento = get_object_or_404(Pagamento, pk=pk)
     if request.method == 'POST':
@@ -646,33 +658,6 @@ def relatorio_pdf(request, tipo):
     response['Content-Disposition'] = f'attachment; filename="relatorio_{tipo}.pdf"'
     return response
 
-@login_required
-def pecas_lista(request):
-    q = request.GET.get('q', '')
-    pecas = Peca.objects.all()
-    if q:
-        pecas = pecas.filter(nome__icontains=q)
-    return render(request, 'gestao/pecas_lista.html', {'pecas': pecas, 'q': q})
-
-
-@login_required
-def pecas_form(request, pk=None):
-    peca = get_object_or_404(Peca, pk=pk) if pk else None
-    form = PecaForm(request.POST or None, instance=peca)
-    if form.is_valid():
-        form.save()
-        messages.success(request, 'Peça salva com sucesso!')
-        return redirect('pecas_lista')
-    return render(request, 'gestao/pecas_form.html', {'form': form, 'peca': peca})
-
-
-@login_required
-def peca_excluir(request, pk):
-    peca = get_object_or_404(Peca, pk=pk)
-    if request.method == 'POST':
-        peca.delete()
-        messages.success(request, 'Peça removida.')
-    return redirect('pecas_lista')
 
 @login_required
 def relatorio_excel(request, tipo):
@@ -748,6 +733,35 @@ def relatorio_excel(request, tipo):
     return response
 
 
+@login_required
+def pecas_lista(request):
+    q = request.GET.get('q', '')
+    pecas = Peca.objects.all()
+    if q:
+        pecas = pecas.filter(nome__icontains=q)
+    return render(request, 'gestao/pecas_lista.html', {'pecas': pecas, 'q': q})
+
+
+@login_required
+def pecas_form(request, pk=None):
+    peca = get_object_or_404(Peca, pk=pk) if pk else None
+    form = PecaForm(request.POST or None, instance=peca)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Peça salva com sucesso!')
+        return redirect('pecas_lista')
+    return render(request, 'gestao/pecas_form.html', {'form': form, 'peca': peca})
+
+
+@login_required
+def peca_excluir(request, pk):
+    peca = get_object_or_404(Peca, pk=pk)
+    if request.method == 'POST':
+        peca.delete()
+        messages.success(request, 'Peça removida.')
+    return redirect('pecas_lista')
+
+
 def manifest_json(request):
     manifest = {
         "name": "LM Locadora",
@@ -774,5 +788,3 @@ self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c
 self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
 """
     return HttpResponse(sw_content, content_type='application/javascript')
-
-    

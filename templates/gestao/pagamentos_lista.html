@@ -22,6 +22,7 @@
           <td>{{ p.get_forma_pagamento_display }}</td>
           <td><span class="status-badge badge-{{ p.situacao }}">{{ p.get_situacao_display }}</span></td>
           <td class="d-flex gap-1 align-items-center">
+          <a href="/pagamentos/{{ p.pk }}/editar/" class="btn btn-sm btn-outline-warning" title="Editar pagamento"><i class="bi bi-pencil"></i></a>
             {% if p.situacao != 'pago' %}
             <form method="post" action="/pagamentos/{{ p.pk }}/pagar/" style="display:inline">
               {% csrf_token %}

@@ -61,6 +61,19 @@ class PagamentoForm(forms.ModelForm):
         }
 
 
+class PagamentoEditForm(forms.ModelForm):
+    """Formulário completo para corrigir um pagamento já existente
+    (valor, datas, forma de pagamento e situação)."""
+    class Meta:
+        model = Pagamento
+        exclude = ['locacao', 'criado_em']
+        widgets = {
+            'data_vencimento': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'data_pagamento': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'observacoes': forms.Textarea(attrs={'rows': 3}),
+        }
+
+
 class ManutencaoForm(forms.ModelForm):
     class Meta:
         model = Manutencao
@@ -108,7 +121,10 @@ def add_bootstrap_classes(form):
 # Monkey-patch all forms to add bootstrap classes
 _original_init_methods = {}
 
-for form_cls in [ClienteForm, VeiculoForm, LocacaoForm, LocacaoFinalizarForm, PagamentoForm, ManutencaoForm, DespesaForm, PecaForm]:
+for form_cls in [
+    ClienteForm, VeiculoForm, LocacaoForm, LocacaoFinalizarForm,
+    PagamentoForm, PagamentoEditForm, ManutencaoForm, DespesaForm, PecaForm,
+]:
     original_init = form_cls.__init__
 
     def make_init(orig):
@@ -118,4 +134,3 @@ for form_cls in [ClienteForm, VeiculoForm, LocacaoForm, LocacaoFinalizarForm, Pa
         return new_init
 
     form_cls.__init__ = make_init(original_init)
-    
