@@ -777,14 +777,18 @@ def manifest_json(request):
             {"src": "/static/icons/icon-512.png", "sizes": "512x512", "type": "image/png"},
         ]
     }
-    return JsonResponse(manifest)
-
+    return JsonResponse(manifest, content_type="application/manifest+json")
 
 def service_worker(request):
     sw_content = """
-const CACHE_NAME = 'locagestao-v1';
-const urlsToCache = ['/'];
-self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))));
-self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+self.addEventListener('install', (e) => {
+  self.skipWaiting();
+});
+self.addEventListener('activate', (e) => {
+  self.clients.claim();
+});
+self.addEventListener('fetch', (e) => {
+  e.respondWith(fetch(e.request));
+});
 """
     return HttpResponse(sw_content, content_type='application/javascript')

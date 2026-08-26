@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -7,15 +8,14 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="LM Locadora">
 <meta name="theme-color" content="#0F2744">
-<link rel="manifest" href="/manifest.json">
-<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<link rel="manifest" href="{% url 'manifest_json' %}">
+<link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}">
+
 <title>{% block title %}LM Locadora{% endblock %}</title>
+...
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-{% load static %}
-{% load pwa %}
 
-{% progressive_web_app_meta %}
 <style>
   :root {
     --navy: #0F2744;
@@ -199,6 +199,12 @@
     </div>
   </div>
 
+  <div class="px-3 pt-2">
+    <button id="install-btn" class="btn btn-primary btn-sm w-100 d-none">
+      📲 Instalar App
+    </button>
+  </div>
+
   <div class="sidebar-nav">
     <div class="sidebar-section">Principal</div>
     <div class="nav-item">
@@ -219,10 +225,11 @@
       </a>
     </div>
     <div class="nav-item">
-    <a href="/pecas/" class="nav-link {% if 'peca' in request.resolver_match.url_name %}active{% endif %}">
-      <i class="bi bi-nut"></i> Peças
-    </a>
+      <a href="/pecas/" class="nav-link {% if 'peca' in request.resolver_match.url_name %}active{% endif %}">
+        <i class="bi bi-nut"></i> Peças
+      </a>
     </div>
+
     <div class="sidebar-section">Operações</div>
     <div class="nav-item">
       <a href="/locacoes/" class="nav-link {% if 'locacao' in request.resolver_match.url_name %}active{% endif %}">
@@ -234,13 +241,11 @@
         <i class="bi bi-cash-coin"></i> Pagamentos
       </a>
     </div>
-
     <div class="nav-item">
-    <a href="/despesas/" class="nav-link {% if 'despesa' in request.resolver_match.url_name %}active{% endif %}">
+      <a href="/despesas/" class="nav-link {% if 'despesa' in request.resolver_match.url_name %}active{% endif %}">
         <i class="bi bi-wallet2"></i> Despesas
-    </a>
+      </a>
     </div>
-
     <div class="nav-item">
       <a href="/manutencoes/" class="nav-link {% if 'manutencao' in request.resolver_match.url_name %}active{% endif %}">
         <i class="bi bi-tools"></i> Manutenções
@@ -300,17 +305,40 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
 <script>
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('overlay').classList.toggle('open');
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('overlay').classList.remove('open');
-}
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
-}
+  // Sidebar mobile
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('open');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+  }
+
+  // Service Worker — registro ÚNICO, na raiz, para controlar o site inteiro.
+  // Confirme em urls.py o caminho real servido pelo django-pwa
+  // (geralmente /serviceworker.js). Ajuste aqui se for diferente de /sw.js.
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.error('Falha ao registrar Service Worker:', err);
+    });
+  }
+
+  // Prompt de instalação do PWA
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('install-btn')?.classList.remove('d-none');
+  });
+
+  document.getElementById('install-btn')?.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('install-btn')?.classList.add('d-none');
+  });
 </script>
 {% block extra_js %}{% endblock %}
 </body>

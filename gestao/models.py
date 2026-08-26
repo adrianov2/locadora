@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
-
+from django.core.exceptions import ValidationError
 
 
 class Usuario(AbstractUser):
@@ -147,20 +147,41 @@ class Locacao(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
     criado_por = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True)
 
+    data_inicio_real = models.DateField(
+        null=True, blank=True,
+        help_text="Preencha só se o cliente já está com o carro há mais tempo do que a data de retirada cadastrada"
+    )
+
     class Meta:
         ordering = ['-data_retirada']
         verbose_name = 'Locação'
-
-    data_inicio_real = models.DateField(
-    null=True, blank=True,
-    help_text="Preencha só se o cliente já está com o carro há mais tempo do que a data de retirada cadastrada"
-)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['cliente'],
+                condition=models.Q(status='ativa'),
+                name='unique_locacao_ativa_por_cliente'
+            )
+        ]
 
     def __str__(self):
         return f'{self.cliente} - {self.veiculo} - {self.data_retirada}'
 
+    def clean(self):
+        if self.status == 'ativa':
+            ja_tem_ativa = Locacao.objects.filter(
+                cliente=self.cliente,
+                status='ativa'
+            ).exclude(pk=self.pk).exists()
 
+            if ja_tem_ativa:
+                raise ValidationError(
+                    f'O cliente {self.cliente} já possui uma locação ativa. '
+                    'Finalize ou cancele a locação atual antes de cadastrar uma nova.'
+                )
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 class Pagamento(models.Model):
     SITUACAO_CHOICES = [
