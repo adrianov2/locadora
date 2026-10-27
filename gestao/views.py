@@ -624,7 +624,12 @@ def relatorio_pdf(request, tipo):
     elif tipo == 'manutencoes':
         data = [['Veículo', 'Tipo', 'Data', 'Valor']]
         for m in Manutencao.objects.select_related('veiculo').all()[:100]:
-            data.append([str(m.veiculo), m.get_tipo_display(), str(m.data), f'R$ {m.valor}'])
+            data.append([
+    str(m.veiculo),
+    m.tipo_exibicao,
+    str(m.data),
+    f'R$ {m.valor}'
+])
 
     elif tipo == 'financeiro':
         data = [['Cliente', 'Veículo', 'Valor', 'Vencimento', 'Situação']]

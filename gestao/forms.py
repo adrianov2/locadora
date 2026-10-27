@@ -74,20 +74,63 @@ class PagamentoEditForm(forms.ModelForm):
         }
 
 
+
 class ManutencaoForm(forms.ModelForm):
     class Meta:
         model = Manutencao
         exclude = ['criado_em']
         widgets = {
-            'data': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
-            'proxima_revisao': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
-            'proxima_troca_oleo': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
-            'troca_pneus': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
-            'vencimento_seguro': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
-            'vencimento_licenciamento': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
-            'vencimento_ipva': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            'data': forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'type': 'date'}
+            ),
+            'proxima_revisao': forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'type': 'date'}
+            ),
+            'proxima_troca_oleo': forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'type': 'date'}
+            ),
+            'troca_pneus': forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'type': 'date'}
+            ),
+            'vencimento_seguro': forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'type': 'date'}
+            ),
+            'vencimento_licenciamento': forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'type': 'date'}
+            ),
+            'vencimento_ipva': forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'type': 'date'}
+            ),
             'descricao': forms.Textarea(attrs={'rows': 3}),
+            'tipo_personalizado': forms.TextInput(attrs={
+                'placeholder': 'Ex.: alinhamento, freios, suspensão...',
+            }),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo = cleaned_data.get('tipo')
+        tipo_personalizado = (
+            cleaned_data.get('tipo_personalizado') or ''
+        ).strip()
+
+        if tipo == 'outros' and not tipo_personalizado:
+            self.add_error(
+                'tipo_personalizado',
+                'Informe qual é o tipo de manutenção.'
+            )
+
+        if tipo != 'outros':
+            cleaned_data['tipo_personalizado'] = ''
+
+        return cleaned_data
 
 
 class DespesaForm(forms.ModelForm):

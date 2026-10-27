@@ -14,6 +14,15 @@
         <div class="col-md-8"><label class="form-label">Oficina</label>{{ form.oficina }}</div>
         <div class="col-12"><label class="form-label">Descrição</label>{{ form.descricao }}</div>
       </div>
+      <div class="col-md-6" id="tipo-personalizado-container" style="display: none;">
+    <label class="form-label" for="{{ form.tipo_personalizado.id_for_label }}">
+        Qual tipo de manutenção? *
+    </label>
+    {{ form.tipo_personalizado }}
+    {% for error in form.tipo_personalizado.errors %}
+        <div class="text-danger small">{{ error }}</div>
+    {% endfor %}
+</div>
       <p class="section-title">Próximos Vencimentos</p>
       <div class="row g-3">
         <div class="col-md-4"><label class="form-label">Próxima Revisão</label>{{ form.proxima_revisao }}</div>
@@ -31,4 +40,29 @@
     <a href="/manutencoes/" class="btn btn-outline-secondary">Cancelar</a>
   </div>
 </form>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tipoSelect = document.querySelector('[name="tipo"]');
+    const campoContainer = document.getElementById(
+        'tipo-personalizado-container'
+    );
+    const campoTexto = document.querySelector(
+        '[name="tipo_personalizado"]'
+    );
+
+    function atualizarCampoTipo() {
+        const mostrar = tipoSelect && tipoSelect.value === 'outros';
+
+        campoContainer.style.display = mostrar ? '' : 'none';
+        campoTexto.required = Boolean(mostrar);
+
+        if (!mostrar) {
+            campoTexto.value = '';
+        }
+    }
+
+    tipoSelect.addEventListener('change', atualizarCampoTipo);
+    atualizarCampoTipo();
+});
+</script>
 {% endblock %}

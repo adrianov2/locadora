@@ -21,7 +21,7 @@
         {% for m in manutencoes %}
         <tr>
           <td>{{ m.veiculo.placa }}<br><small class="text-muted">{{ m.veiculo.marca }} {{ m.veiculo.modelo }}</small></td>
-          <td>{{ m.get_tipo_display }}</td>
+          <td>{{ m.tipo_exibicao }}</td>
           <td>{{ m.data|date:"d/m/Y" }}</td>
           <td>R$ {{ m.valor }}</td>
           <td>{{ m.oficina|default:"—" }}</td>

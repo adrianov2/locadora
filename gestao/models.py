@@ -87,8 +87,21 @@ class Manutencao(models.Model):
         ('ipva', 'IPVA'),
         ('outros', 'Outros'),
     ]
-    veiculo = models.ForeignKey(Veiculo, on_delete=models.CASCADE, related_name='manutencoes')
+
+    veiculo = models.ForeignKey(
+        Veiculo,
+        on_delete=models.CASCADE,
+        related_name='manutencoes'
+    )
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
+
+    # Novo campo para especificar o tipo "Outros"
+    tipo_personalizado = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Especifique o tipo de manutenção'
+    )
+
     descricao = models.TextField(blank=True)
     data = models.DateField()
     valor = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -105,9 +118,14 @@ class Manutencao(models.Model):
         ordering = ['-data']
         verbose_name = 'Manutenção'
 
-    def __str__(self):
-        return f'{self.veiculo} - {self.get_tipo_display()} - {self.data}'
+    @property
+    def tipo_exibicao(self):
+        if self.tipo == 'outros' and self.tipo_personalizado.strip():
+            return self.tipo_personalizado.strip()
+        return self.get_tipo_display()
 
+    def __str__(self):
+        return f'{self.veiculo} - {self.tipo_exibicao} - {self.data}'
 
 class Locacao(models.Model):
     STATUS_CHOICES = [
